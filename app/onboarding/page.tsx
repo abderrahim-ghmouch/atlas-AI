@@ -11,20 +11,22 @@ export default function OnboardingPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-full bg-[#FFFBF5] text-[#0F172A]">
+    <div className="min-h-full bg-background text-primary">
       <AuthHeader authLink="login" />
 
-      <main className="mx-auto flex max-w-md flex-col px-6 py-10" dir="ltr">
+      <main className="mx-auto flex max-w-md flex-col px-6 py-12">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold">
+          <h1 className="font-serif text-headline font-bold text-primary">
             {getTranslation(language, "setupYourStudies")}
           </h1>
-          <p className="mt-2 text-[#0F172A]/70">
+          <p className="mt-2 text-xs text-secondary leading-relaxed">
             {getTranslation(language, "setupYourStudiesDescription")}
           </p>
         </div>
 
-        <AcademicSelectionForm onComplete={() => router.push("/dashboard")} />
+        <div className="bg-surface border border-[#E2E8F0] p-6 rounded-md shadow-subtle">
+          <AcademicSelectionForm onComplete={() => router.push("/dashboard")} />
+        </div>
       </main>
     </div>
   );
