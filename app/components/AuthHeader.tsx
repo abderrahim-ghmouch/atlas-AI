@@ -11,10 +11,9 @@ interface AuthHeaderProps {
 
 export function AuthHeader({ authLink }: AuthHeaderProps) {
   const { language } = useLanguage();
-  const isRtl = language === "ar";
 
   return (
-    <header className={`flex items-center justify-between px-6 py-5 ${isRtl ? "flex-row-reverse" : ""}`}>
+    <header className="flex items-center justify-between px-6 py-5">
       <Link href="/" className="text-xl font-bold tracking-tight">
         {getTranslation(language, "appName")}
       </Link>
@@ -22,9 +21,7 @@ export function AuthHeader({ authLink }: AuthHeaderProps) {
         <LanguageSwitcher />
         <Link
           href={authLink === "login" ? "/signup" : "/login"}
-          className={`rounded-full border border-[#0F172A] px-5 py-2 text-sm font-medium hover:bg-[#0F172A]/5 transition-colors ${
-            isRtl ? "" : ""
-          }`}
+          className="rounded-full border border-[#0F172A] px-5 py-2 text-sm font-medium hover:bg-[#0F172A]/5 transition-colors"
         >
           {authLink === "login" ? getTranslation(language, "signUp") : getTranslation(language, "login")}
         </Link>
