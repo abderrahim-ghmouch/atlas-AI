@@ -6,36 +6,41 @@
   --font-sans: var(--font-inter), Inter, sans-serif;
   --font-mono: var(--font-jetbrains-mono), JetBrains Mono, monospace;
 
-  /* Color Palette */
-  --color-primary: #1E3A5F;
-  --color-secondary: #6B7280;
-  --color-tertiary: #2563EB;
-  --color-background: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-success: #16A34A;
+  /* Brand Color Palette */
+  --color-primary: #0D4E56;        /* Deep Teal (Text & Headings) */
+  --color-secondary: #5B7B7F;      /* Muted Teal-Grey (Muted/Hints) */
+  --color-tertiary: #25A194;       /* Mint Green (Brand color fallback) */
+  --color-brand-mint: #25A194;     /* Mint Green (Active elements, standard buttons) */
+  --color-accent-coral: #FF6B57;   /* Coral / Orange-red (Submit, primary action) */
+  --color-background: #FFFDF9;     /* Off-white / Warm light page background */
+  --color-surface: #FAF7EE;        /* Cream (Cards & Surfaces) */
+  --color-sidebar-bg: #E7F3F1;     /* Pale Mint (Sidebars) */
+  
+  --color-success: #25A194;        /* Success = Mint */
   --color-warning: #CA8A04;
-  --color-error: #DC2626;
-  --color-info: #2563EB;
+  --color-error: #FF6B57;          /* Error = Coral */
+  --color-info: #25A194;
 
-  /* Border Radii */
+  /* Border Radii (Soft Organic Geometry) */
   --radius-none: 0px;
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
   /* Shadows (Subtle, Medium, Large, Overlay) */
-  --shadow-subtle: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-medium: 0 2px 6px rgba(15, 23, 42, 0.06);
-  --shadow-large: 0 6px 16px rgba(15, 23, 42, 0.08);
-  --shadow-overlay: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --shadow-subtle: 0 2px 8px rgba(13, 78, 86, 0.04);
+  --shadow-medium: 0 4px 16px rgba(13, 78, 86, 0.06);
+  --shadow-large: 0 8px 24px rgba(13, 78, 86, 0.08);
+  --shadow-overlay: 0 16px 40px rgba(13, 78, 86, 0.12);
 }
 
 /* Base Styles */
 body {
   background-color: var(--color-background);
-  color: #1E293B; /* Slate 800 */
+  color: var(--color-primary);
   font-family: var(--font-sans);
   min-height: 100%;
 }

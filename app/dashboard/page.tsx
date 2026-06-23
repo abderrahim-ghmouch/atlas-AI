@@ -564,34 +564,34 @@ export default function DashboardPage() {
 
       {/* LEFT ASIDE: Chat History Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-[#E2E8F0] flex flex-col justify-between h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar-bg border-r border-brand-mint/15 flex flex-col justify-between h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
           leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } shadow-subtle`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Sidebar Header */}
-          <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-brand-mint/15 flex items-center justify-between">
             <span className="font-serif text-lg font-bold tracking-tight text-primary">mgscholar.ai</span>
             <button
               onClick={() => setLeftSidebarOpen(false)}
-              className="lg:hidden text-secondary hover:text-primary text-xs font-semibold"
+              className="lg:hidden text-secondary hover:text-primary text-xs font-semibold transition-colors duration-200"
             >
               Fermer
             </button>
           </div>
 
           {/* New Chat Button */}
-          <div className="p-4 border-b border-[#E2E8F0]/50">
+          <div className="p-4 border-b border-brand-mint/10">
             <button
               onClick={handleNewChat}
-              className="w-full rounded-md bg-primary py-2 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors shadow-subtle cursor-pointer text-center"
+              className="w-full rounded-xl bg-brand-mint py-2 text-xs font-semibold text-white hover:bg-[#1B8074] hover:scale-[1.01] active:scale-95 transition-all duration-200 shadow-subtle cursor-pointer text-center"
             >
               + Nouvelle discussion
             </button>
           </div>
 
           {/* Discussions List */}
-          <div className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+          <div className="flex-1 overflow-y-auto px-2 py-4 space-y-1.5">
             <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-secondary/60 mb-2">
               Discussions récentes
             </p>
@@ -602,24 +602,24 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={d.id}
-                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-sm border-l-2 transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl border-l-2 transition-all duration-200 hover:scale-[1.01] active:scale-95 ${
                       isActive
-                        ? "bg-[#EFF6FF] text-primary border-primary"
-                        : "bg-transparent text-primary/80 border-transparent hover:bg-[#F8FAFC]"
+                        ? "bg-surface text-primary border-brand-mint shadow-subtle"
+                        : "bg-transparent text-primary/80 border-transparent hover:bg-surface/40"
                     }`}
                   >
                     <button
                       onClick={() => handleSelectDiscussion(d.id)}
                       className="text-left text-xs font-medium truncate flex-1 cursor-pointer flex items-center gap-2"
                     >
-                      <svg className="w-3.5 h-3.5 text-primary/70 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 text-brand-mint fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                       <span className="truncate">{d.title}</span>
                     </button>
                     <button
                       onClick={(e) => handleDeleteDiscussion(e, d.id)}
-                      className="w-4 h-4 flex items-center justify-center rounded-sm text-secondary hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                      className="w-4 h-4 flex items-center justify-center rounded-md text-secondary hover:text-red-500 hover:bg-red-50 transition-all duration-200 cursor-pointer"
                       title="Supprimer"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -633,9 +633,9 @@ export default function DashboardPage() {
         </div>
 
         {/* User Session Footer */}
-        <div className="border-t border-[#E2E8F0] p-4 bg-[#F8FAFC] flex flex-col gap-2">
+        <div className="border-t border-brand-mint/15 p-4 bg-sidebar-bg/60 flex flex-col gap-2">
           <div className="flex items-center gap-2.5 px-1 py-1.5">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary border border-primary/20">
+            <div className="w-8 h-8 rounded-full bg-brand-mint/10 flex items-center justify-center font-bold text-xs text-brand-mint border border-brand-mint/20">
               U
             </div>
             <div className="flex flex-col truncate">
@@ -647,13 +647,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-2 mt-1">
             <button
               onClick={() => setActiveModal("profile")}
-              className="text-center rounded-sm border border-[#CBD5E1] bg-surface py-1 text-[11px] font-semibold text-primary hover:bg-[#EFF6FF]/40 cursor-pointer"
+              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-all duration-200 cursor-pointer"
             >
               Profil
             </button>
             <button
               onClick={() => setActiveModal("settings")}
-              className="text-center rounded-sm border border-[#CBD5E1] bg-surface py-1 text-[11px] font-semibold text-primary hover:bg-[#EFF6FF]/40 cursor-pointer"
+              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-all duration-200 cursor-pointer"
             >
               Réglages
             </button>
@@ -661,7 +661,7 @@ export default function DashboardPage() {
 
           <button
             onClick={handleLogout}
-            className="w-full text-center rounded-sm border border-red-200 bg-red-50 py-1.5 text-xs font-semibold text-error hover:bg-red-100 transition-colors cursor-pointer mt-1"
+            className="w-full text-center rounded-xl border border-red-200 bg-red-50 py-1.5 text-xs font-semibold text-error hover:bg-red-100 hover:scale-[1.01] active:scale-95 transition-all duration-200 cursor-pointer mt-1"
           >
             Déconnexion
           </button>
@@ -671,12 +671,12 @@ export default function DashboardPage() {
       {/* CENTER PANE: Conversational Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-surface border-b border-[#E2E8F0] shadow-subtle z-10 flex-shrink-0">
+        <header className="flex items-center justify-between px-6 py-4 bg-surface border-b border-brand-mint/10 shadow-subtle z-10 flex-shrink-0">
           <div className="flex items-center gap-3">
             {/* Toggle Left Sidebar on Mobile */}
             <button
               onClick={() => setLeftSidebarOpen(true)}
-              className="lg:hidden p-1.5 rounded-md border border-[#CBD5E1] text-primary hover:bg-[#F1F5F9] cursor-pointer flex items-center justify-center"
+              className="lg:hidden p-1.5 rounded-xl border border-brand-mint/20 text-primary hover:bg-brand-mint/5 cursor-pointer flex items-center justify-center transition-all duration-200 active:scale-90"
               aria-label="Menu"
             >
               <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
@@ -688,7 +688,7 @@ export default function DashboardPage() {
                 <img
                   src={`/univ-logos/${selectedUniv.logo}`}
                   alt=""
-                  className="w-8 h-8 object-contain bg-white p-0.5 border border-[#E2E8F0] rounded-sm flex-shrink-0"
+                  className="w-8 h-8 object-contain bg-white p-0.5 border border-brand-mint/10 rounded-md flex-shrink-0"
                 />
               )}
               <div className="flex flex-col">
@@ -706,16 +706,16 @@ export default function DashboardPage() {
             {/* Toggle Right Drawer on Mobile */}
             <button
               onClick={() => setRightSidebarOpen(true)}
-              className="lg:hidden rounded-md border border-[#CBD5E1] px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#F1F5F9] cursor-pointer flex items-center gap-1.5"
+              className="lg:hidden rounded-xl border border-brand-mint/25 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-brand-mint/5 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
             >
-              <svg className="w-3.5 h-3.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 fill-none stroke-current text-brand-mint" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Polycopiés
             </button>
             <Link
               href="/onboarding"
-              className="rounded-md border border-[#CBD5E1] px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#F1F5F9] transition-colors"
+              className="rounded-xl border border-brand-mint/25 px-3.5 py-1.5 text-xs font-semibold text-brand-mint bg-surface hover:bg-brand-mint/10 hover:scale-[1.02] active:scale-95 transition-all duration-200"
             >
               Matières
             </Link>
@@ -727,7 +727,7 @@ export default function DashboardPage() {
           <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-between">
             
             {/* Subject Tabs Switcher */}
-            <div className="flex flex-wrap gap-1.5 mb-6 border-b border-[#E2E8F0]/60 pb-3">
+            <div className="flex flex-wrap gap-1.5 mb-6 border-b border-brand-mint/10 pb-3">
               {(studyContext.selectedSubjectIds || [studyContext.subjectId]).map((subId) => {
                 const isActive = studyContext.subjectId === subId;
                 const subData = getSubjectById(studyContext.universityId, studyContext.branchId, subId);
@@ -736,10 +736,10 @@ export default function DashboardPage() {
                   <button
                     key={subId}
                     onClick={() => handleSwitchSubject(subId)}
-                    className={`px-3 py-1 rounded-sm text-[10px] font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
                       isActive
-                        ? "bg-[#EFF6FF] border-primary text-primary"
-                        : "bg-surface border-[#CBD5E1]/70 text-secondary hover:bg-[#F8FAFC]"
+                        ? "bg-brand-mint/10 border-brand-mint text-brand-mint font-extrabold"
+                        : "bg-surface border-brand-mint/10 text-secondary hover:bg-brand-mint/5 hover:text-primary"
                     }`}
                   >
                     {label}
@@ -750,7 +750,7 @@ export default function DashboardPage() {
 
             {/* Error Notification */}
             {error && (
-              <div className="mb-4 rounded-md border border-error bg-red-50 p-3.5 text-error text-xs shadow-subtle">
+              <div className="mb-4 rounded-2xl border border-accent-coral bg-red-50 p-4 text-accent-coral text-xs shadow-subtle">
                 <p className="font-bold mb-1">⚠️ Erreur de configuration</p>
                 <p className="mb-2 font-medium">{error}</p>
                 <p className="text-[10px] opacity-90 leading-relaxed">
@@ -767,10 +767,10 @@ export default function DashboardPage() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[90%] rounded-md border px-4 py-3 shadow-subtle ${chatFontSize} ${chatLineHeight} ${
+                    className={`max-w-[85%] rounded-2xl border px-4 py-3 shadow-subtle ${chatFontSize} ${chatLineHeight} ${
                       msg.role === "user"
-                        ? "bg-[#EFF6FF] border-[#CBD5E1] text-primary"
-                        : "bg-surface border-[#E2E8F0] text-primary"
+                        ? "bg-brand-mint/10 border-brand-mint/20 text-primary rounded-tr-none"
+                        : "bg-surface border-brand-mint/10 text-primary rounded-tl-none"
                     }`}
                   >
                     {msg.role === "model" ? (
@@ -784,15 +784,13 @@ export default function DashboardPage() {
                 </div>
               ))}
 
-              {/* Loading dots */}
+              {/* Skeleton Loader */}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-md border border-[#E2E8F0] bg-surface shadow-subtle px-4 py-3">
-                    <div className="flex items-center gap-1.5 py-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-                    </div>
+                <div className="flex justify-start w-full animate-pulse">
+                  <div className="max-w-[80%] w-full rounded-2xl rounded-tl-none border border-brand-mint/10 bg-surface px-4 py-3.5 space-y-2">
+                    <div className="h-2 bg-secondary/30 rounded-full w-2/3" />
+                    <div className="h-2 bg-secondary/20 rounded-full w-5/6" />
+                    <div className="h-2 bg-secondary/10 rounded-full w-1/2" />
                   </div>
                 </div>
               )}
@@ -807,14 +805,14 @@ export default function DashboardPage() {
                     key={i}
                     type="button"
                     onClick={() => handleSendMessage(sug.text)}
-                    className="w-full text-left rounded-md border border-[#CBD5E1] bg-surface hover:bg-[#F8FAFC] px-3.5 py-3 text-xs font-semibold text-primary transition-all cursor-pointer shadow-subtle hover:border-primary/50 flex items-center gap-2.5"
+                    className="w-full text-left rounded-2xl border border-brand-mint/20 bg-surface hover:bg-brand-mint/5 px-4 py-3.5 text-xs font-semibold text-primary transition-all duration-200 hover:scale-[1.01] active:scale-95 cursor-pointer shadow-subtle hover:border-brand-mint/50 flex items-center gap-2.5"
                   >
                     {i === 0 ? (
-                      <svg className="w-4 h-4 text-primary/70 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8M12 3a7 7 0 00-7 7c0 2.4 1.2 4.5 3 5.8V17a1 1 0 001 1h6a1 1 0 001-1v-1.2c1.8-1.3 3-3.4 3-5.8a7 7 0 00-7-7z" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 text-primary/70 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     )}
@@ -825,20 +823,20 @@ export default function DashboardPage() {
             )}
 
             {/* Input Box */}
-            <form onSubmit={handleSubmit} className="relative sticky bottom-0 bg-background pt-2 flex-shrink-0">
+            <form onSubmit={handleSubmit} className="relative sticky bottom-0 bg-background pt-2 pb-4 flex-shrink-0">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
                 placeholder="Posez votre question sur ce cours..."
-                className="w-full rounded-md border border-[#CBD5E1] bg-surface py-3 pl-12 pr-4 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-[#94A3B8] focus:border-primary focus:ring-2 focus:ring-primary/12 transition-all disabled:opacity-70"
+                className="w-full rounded-2xl border border-brand-mint/20 bg-surface py-3.5 pl-12 pr-4 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-brand-mint/40 focus:border-brand-mint focus:ring-2 focus:ring-brand-mint/15 transition-all disabled:opacity-70 shadow-subtle"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
                 aria-label="Envoyer"
-                className="absolute left-1.5 top-[58%] -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md bg-primary text-white hover:bg-[#162D4A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="absolute left-2 top-[52%] -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-xl bg-accent-coral text-white hover:bg-[#E0503C] hover:scale-105 active:scale-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-subtle"
               >
                 ↑
               </button>
@@ -849,20 +847,20 @@ export default function DashboardPage() {
 
       {/* RIGHT ASIDE: Documents & Polycopiés Drawer */}
       <aside
-        className={`fixed inset-y-0 right-0 z-40 w-64 bg-surface border-l border-[#E2E8F0] flex flex-col p-4 h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 right-0 z-40 w-64 bg-sidebar-bg border-l border-brand-mint/15 flex flex-col p-4 h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
           rightSidebarOpen ? "translate-x-0" : "translate-x-full"
         } shadow-subtle flex-shrink-0`}
       >
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-brand-mint/15 pb-3 mb-4">
           <span className="font-serif text-sm font-bold text-primary flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-primary fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Polycopiés du cours
           </span>
           <button
             onClick={() => setRightSidebarOpen(false)}
-            className="lg:hidden text-secondary hover:text-primary text-xs font-semibold"
+            className="lg:hidden text-secondary hover:text-primary text-xs font-semibold transition-colors duration-200"
           >
             Fermer
           </button>
@@ -877,13 +875,13 @@ export default function DashboardPage() {
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleFileDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+          className={`border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 ${
             isDragging
-              ? "border-primary bg-[#EFF6FF]/40"
-              : "border-[#CBD5E1] hover:border-primary/60 bg-background/40"
+              ? "border-brand-mint bg-brand-mint/10"
+              : "border-brand-mint/20 hover:border-brand-mint/50 bg-background/40"
           }`}
         >
-          <svg className="w-6 h-6 text-secondary mb-1.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-brand-mint mb-1.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           <p className="text-xs font-semibold text-primary mb-0.5">Importer un cours</p>
@@ -907,14 +905,14 @@ export default function DashboardPage() {
             <div
               key={file.id}
               onClick={() => handleToggleFile(file.id)}
-              className={`border rounded-md p-2.5 cursor-pointer transition-all flex items-start justify-between ${
+              className={`border rounded-xl p-3 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 flex items-start justify-between ${
                 file.toggled
-                  ? "bg-surface border-primary shadow-subtle opacity-100"
-                  : "bg-surface border-[#E2E8F0] opacity-50 shadow-subtle hover:opacity-75"
+                  ? "bg-surface border-brand-mint shadow-subtle opacity-100"
+                  : "bg-surface border-brand-mint/10 opacity-50 shadow-subtle hover:opacity-80"
               }`}
             >
               <div className="flex items-start gap-2 max-w-[70%]">
-                <svg className="w-3.5 h-3.5 text-primary mt-0.5 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-brand-mint mt-0.5 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <div className="flex flex-col truncate">
@@ -929,7 +927,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
                 <button
                   onClick={(e) => handleDeleteFile(e, file.id)}
-                  className="w-4 h-4 flex items-center justify-center rounded-sm text-secondary hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                  className="w-4 h-4 flex items-center justify-center rounded-md text-secondary hover:text-red-500 hover:bg-red-55 transition-all duration-200 cursor-pointer"
                   title="Supprimer"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -937,10 +935,10 @@ export default function DashboardPage() {
                   </svg>
                 </button>
                 <div
-                  className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center text-[8px] ${
+                  className={`w-4 h-4 rounded-md border flex items-center justify-center text-[8px] transition-colors duration-200 ${
                     file.toggled
-                      ? "bg-primary border-primary text-white font-bold"
-                      : "bg-transparent border-[#CBD5E1]"
+                      ? "bg-brand-mint border-brand-mint text-white font-bold"
+                      : "bg-transparent border-brand-mint/30"
                   }`}
                 >
                   {file.toggled && "✓"}
@@ -958,15 +956,15 @@ export default function DashboardPage() {
 
       {/* MODALS: Profile & Settings */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/40 p-4">
-          <div className="bg-surface border border-[#E2E8F0] rounded-md shadow-overlay max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex justify-between items-start border-b border-[#E2E8F0] pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm p-4">
+          <div className="bg-surface border border-brand-mint/15 rounded-2xl shadow-overlay max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-start border-b border-brand-mint/10 pb-3 mb-4">
               <h3 className="font-serif text-sm font-bold text-primary">
                 {activeModal === "profile" ? "Profil Étudiant" : "Réglages de la plateforme"}
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="text-xs font-bold text-secondary hover:text-primary cursor-pointer"
+                className="text-xs font-bold text-secondary hover:text-primary transition-colors duration-200 cursor-pointer"
               >
                 Fermer
               </button>
@@ -974,8 +972,8 @@ export default function DashboardPage() {
 
             {activeModal === "profile" ? (
               <div className="space-y-4 text-xs">
-                <div className="flex items-center gap-3 bg-[#F8FAFC] p-3 rounded-md border border-[#E2E8F0]">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-sm text-primary">
+                <div className="flex items-center gap-3 bg-sidebar-bg/40 p-3.5 rounded-xl border border-brand-mint/10">
+                  <div className="w-10 h-10 rounded-full bg-brand-mint/10 border border-brand-mint/20 flex items-center justify-center font-bold text-sm text-brand-mint">
                     U
                   </div>
                   <div>
@@ -983,7 +981,7 @@ export default function DashboardPage() {
                     <p className="text-secondary text-[10px]">{studyContext.universityLabel}</p>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 text-primary/80">
                   <p><strong>Filière :</strong> {studyContext.branchLabel}</p>
                   <p><strong>Niveau d'études :</strong> Semestre {studyContext.semester}</p>
                   <p><strong>Matières configurées :</strong> {(studyContext.selectedSubjectIds || []).length} modules actifs</p>
@@ -994,13 +992,13 @@ export default function DashboardPage() {
                 <div className="space-y-1.5">
                   <span className="block font-bold text-primary">Langue de l'interface</span>
                   <div className="flex gap-2">
-                    <span className="px-2.5 py-1 rounded-sm text-[10px] font-bold bg-[#EFF6FF] text-primary border border-primary">
+                    <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-brand-mint/10 text-brand-mint border border-brand-mint/20">
                       FRANÇAIS (FR)
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t border-[#E2E8F0] pt-3">
+                <div className="space-y-2.5 border-t border-brand-mint/10 pt-3.5">
                   <span className="block font-bold text-primary">Taille du texte</span>
                   <div className="flex gap-2">
                     {[
@@ -1011,10 +1009,10 @@ export default function DashboardPage() {
                       <button
                         key={sz.value}
                         onClick={() => handleUpdateFontSize(sz.value as any)}
-                        className={`px-2.5 py-1 rounded-sm border text-[10px] font-medium transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
                           chatFontSize === sz.value
-                            ? "bg-primary text-white border-primary"
-                            : "bg-transparent border-[#CBD5E1] text-secondary hover:border-primary hover:text-primary"
+                            ? "bg-brand-mint text-white border-brand-mint shadow-subtle"
+                            : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
                         }`}
                       >
                         {sz.label}
@@ -1023,7 +1021,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 border-t border-[#E2E8F0] pt-3">
+                <div className="space-y-2.5 border-t border-brand-mint/10 pt-3.5">
                   <span className="block font-bold text-primary">Espacement des lignes</span>
                   <div className="flex gap-2">
                     {[
@@ -1034,10 +1032,10 @@ export default function DashboardPage() {
                       <button
                         key={lh.value}
                         onClick={() => handleUpdateLineHeight(lh.value as any)}
-                        className={`px-2.5 py-1 rounded-sm border text-[10px] font-medium transition-colors cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
                           chatLineHeight === lh.value
-                            ? "bg-primary text-white border-primary"
-                            : "bg-transparent border-[#CBD5E1] text-secondary hover:border-primary hover:text-primary"
+                            ? "bg-brand-mint text-white border-brand-mint shadow-subtle"
+                            : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
                         }`}
                       >
                         {lh.label}
@@ -1046,7 +1044,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1 border-t border-[#E2E8F0] pt-3">
+                <div className="space-y-1.5 border-t border-brand-mint/10 pt-3.5">
                   <span className="block font-bold text-primary">Paramètres d'étude</span>
                   <p className="text-secondary text-[10px] leading-relaxed">
                     Les explications d'étude et les corrections d'examens générées par l'IA tutorielle sont configurées spécifiquement pour le programme officiel de votre établissement.
@@ -1057,7 +1055,7 @@ export default function DashboardPage() {
             
             <button
               onClick={() => setActiveModal(null)}
-              className="mt-6 w-full rounded-md bg-primary py-2 text-xs font-semibold text-white hover:bg-[#162D4A] cursor-pointer text-center"
+              className="mt-6 w-full rounded-xl bg-accent-coral py-2.5 text-xs font-semibold text-white hover:bg-[#E0503C] hover:scale-[1.01] active:scale-95 transition-all duration-200 cursor-pointer text-center"
             >
               D'accord
             </button>

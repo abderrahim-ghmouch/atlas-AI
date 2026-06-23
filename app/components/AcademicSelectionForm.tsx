@@ -142,8 +142,8 @@ export function AcademicSelectionForm({
           <span>Semestre</span>
           <span>Matières</span>
         </div>
-        <div className="h-1.5 w-full rounded-sm bg-[#E2E8F0] overflow-hidden">
-          <div className="progress-bar-fill h-full w-1/4 rounded-sm bg-primary" />
+        <div className="h-2 w-full rounded-full bg-sidebar-bg/60 overflow-hidden">
+          <div className="progress-bar-fill h-full w-1/4 rounded-full bg-brand-mint" />
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export function AcademicSelectionForm({
         <button
           type="button"
           onClick={handleBack}
-          className="mb-4 flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary transition-colors cursor-pointer"
+          className="mb-4 flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary transition-all duration-200 hover:-translate-x-0.5 active:scale-95 cursor-pointer"
         >
           ← Retour
         </button>
@@ -166,23 +166,23 @@ export function AcademicSelectionForm({
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
               Choisissez votre université :
             </h2>
-            <div className="grid grid-cols-1 gap-2 max-h-[320px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-2.5 max-h-[320px] overflow-y-auto pr-1">
               {universities.map((univ) => (
                 <button
                   key={univ.id}
                   type="button"
                   onClick={() => handleSelectUniversity(univ.id)}
-                  className={`w-full text-left border rounded-md p-3 cursor-pointer transition-all flex items-center gap-3 ${
+                  className={`w-full text-left border rounded-2xl p-3.5 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 flex items-center gap-3 ${
                     universityId === univ.id
-                      ? "bg-[#F1F5F9] border-2 border-primary shadow-medium"
-                      : "bg-surface border-[#E2E8F0] shadow-subtle hover:border-primary/50"
+                      ? "bg-sidebar-bg/60 border-2 border-brand-mint shadow-medium"
+                      : "bg-surface border-[#CBD5E1]/40 shadow-subtle hover:border-brand-mint/50"
                   }`}
                 >
                   {univ.logo ? (
                     <img
                       src={`/univ-logos/${univ.logo}`}
                       alt=""
-                      className="w-6 h-6 object-contain rounded-sm"
+                      className="w-6 h-6 object-contain rounded-md"
                     />
                   ) : (
                     <span className="text-base">🎓</span>
@@ -200,16 +200,16 @@ export function AcademicSelectionForm({
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
               Choisissez votre filière :
             </h2>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2.5">
               {selectedUniversity?.branches.map((branch) => (
                 <button
                   key={branch.id}
                   type="button"
                   onClick={() => handleSelectBranch(branch.id)}
-                  className={`w-full text-left border rounded-md p-3.5 cursor-pointer transition-all flex items-center gap-3 ${
+                  className={`w-full text-left border rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 flex items-center gap-3 ${
                     branchId === branch.id
-                      ? "bg-[#F1F5F9] border-2 border-primary shadow-medium"
-                      : "bg-surface border-[#E2E8F0] shadow-subtle hover:border-primary/50"
+                      ? "bg-sidebar-bg/60 border-2 border-brand-mint shadow-medium"
+                      : "bg-surface border-[#CBD5E1]/40 shadow-subtle hover:border-brand-mint/50"
                   }`}
                 >
                   <span className="text-lg">{getBranchIcon(branch.id)}</span>
@@ -226,16 +226,16 @@ export function AcademicSelectionForm({
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
               Choisissez votre semestre :
             </h2>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {semestersList.map((sem) => (
                 <button
                   key={sem.id}
                   type="button"
                   onClick={() => handleSelectSemester(sem.id)}
-                  className={`text-center border rounded-md p-4 cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 ${
+                  className={`text-center border rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-95 flex flex-col items-center justify-center gap-1.5 ${
                     semester === sem.id
-                      ? "bg-[#F1F5F9] border-2 border-primary shadow-medium"
-                      : "bg-surface border-[#E2E8F0] shadow-subtle hover:border-primary/50"
+                      ? "bg-sidebar-bg/60 border-2 border-brand-mint shadow-medium"
+                      : "bg-surface border-[#CBD5E1]/40 shadow-subtle hover:border-brand-mint/50"
                   }`}
                 >
                   <span className="text-lg text-primary">{sem.num}</span>
@@ -260,19 +260,19 @@ export function AcademicSelectionForm({
                     key={subject.id}
                     type="button"
                     onClick={() => handleToggleSubject(subject.id)}
-                    className={`w-full text-left border rounded-md px-3.5 py-2.5 cursor-pointer transition-all flex items-center justify-between ${
+                    className={`w-full text-left border rounded-xl px-4 py-3 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 flex items-center justify-between ${
                       isSelected
-                        ? "bg-surface border-2 border-primary shadow-subtle opacity-100"
-                        : "bg-surface border-[#E2E8F0] opacity-50 shadow-subtle"
+                        ? "bg-surface border-2 border-brand-mint shadow-subtle opacity-100"
+                        : "bg-surface border-[#CBD5E1]/40 opacity-50 shadow-subtle hover:opacity-75"
                     }`}
                   >
                     <span className="font-sans font-medium text-xs text-primary pr-2">
                       {getTranslation(language, subject.labelKey as TranslationKey)}
                     </span>
                     <div
-                      className={`w-4 h-4 rounded-sm border flex items-center justify-center text-[9px] flex-shrink-0 ${
+                      className={`w-4 h-4 rounded-md border flex items-center justify-center text-[9px] flex-shrink-0 ${
                         isSelected
-                          ? "bg-primary border-primary text-white font-bold"
+                          ? "bg-brand-mint border-brand-mint text-white font-bold"
                           : "bg-transparent border-[#CBD5E1]"
                       }`}
                     >
@@ -291,7 +291,7 @@ export function AcademicSelectionForm({
             <button
               type="submit"
               disabled={selectedSubjectIds.length === 0}
-              className="mt-4 w-full rounded-md bg-primary py-3 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer"
+              className="mt-4 w-full rounded-xl bg-accent-coral py-3 text-xs font-semibold text-white hover:bg-[#E0503C] hover:scale-[1.01] active:scale-95 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer text-center"
             >
               {getTranslation(language, submitLabelKey)}
             </button>

@@ -65,14 +65,14 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="flex flex-col gap-4 bg-surface border border-[#E2E8F0] p-6 rounded-md shadow-subtle" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4 bg-surface border border-brand-mint/10 p-6 rounded-2xl shadow-subtle animate-in fade-in zoom-in-95 duration-200" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded bg-red-50 p-2.5 text-[10px] text-red-600 border border-red-200">
+            <div className="rounded-xl bg-red-50 p-2.5 text-[10px] text-accent-coral border border-red-200">
               {error}
             </div>
           )}
           <div>
-            <label htmlFor="email" className="mb-1 block text-xs font-semibold text-primary">
+            <label htmlFor="email" className="mb-1.5 block text-xs font-semibold text-primary">
               {getTranslation(language, "email")}
             </label>
             <input
@@ -81,12 +81,12 @@ export default function LoginPage() {
               type="email"
               required
               placeholder={getTranslation(language, "emailPlaceholder")}
-              className="w-full rounded-md border border-[#CBD5E1] bg-surface px-3 py-2 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-[#94A3B8] focus:border-primary focus:ring-2 focus:ring-primary/12 transition-all"
+              className="w-full rounded-xl border border-brand-mint/20 bg-surface px-3 py-2 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-brand-mint/40 focus:border-brand-mint focus:ring-2 focus:ring-brand-mint/15 transition-all duration-200"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1 block text-xs font-semibold text-primary">
+            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-primary">
               {getTranslation(language, "password")}
             </label>
             <input
@@ -95,7 +95,7 @@ export default function LoginPage() {
               type="password"
               required
               placeholder={getTranslation(language, "passwordPlaceholder")}
-              className="w-full rounded-md border border-[#CBD5E1] bg-surface px-3 py-2 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-[#94A3B8] focus:border-primary focus:ring-2 focus:ring-primary/12 transition-all"
+              className="w-full rounded-xl border border-brand-mint/20 bg-surface px-3 py-2 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-brand-mint/40 focus:border-brand-mint focus:ring-2 focus:ring-brand-mint/15 transition-all duration-200"
             />
           </div>
 
@@ -104,23 +104,23 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 name="remember"
-                className="w-3.5 h-3.5 rounded-sm border border-[#CBD5E1] bg-surface text-primary focus:ring-2 focus:ring-primary/15 cursor-pointer"
+                className="w-3.5 h-3.5 rounded border border-brand-mint/30 bg-surface text-brand-mint focus:ring-2 focus:ring-brand-mint/20 cursor-pointer"
               />
               <span className="text-secondary text-xs">{getTranslation(language, "rememberMe")}</span>
             </label>
-            <Link href="/forgot-password" className="font-semibold text-tertiary underline hover:text-primary transition-colors">
+            <Link href="/forgot-password" className="font-semibold text-brand-mint underline hover:text-primary transition-colors">
               {getTranslation(language, "forgotPassword")}
             </Link>
           </div>
 
-          <button type="submit" disabled={isLoading} className="w-full rounded-md bg-primary py-2.5 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors cursor-pointer disabled:opacity-50">
+          <button type="submit" disabled={isLoading} className="w-full rounded-xl bg-accent-coral py-2.5 text-xs font-semibold text-white hover:bg-[#E0503C] hover:scale-[1.01] active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50 shadow-subtle">
             {isLoading ? "Connexion..." : getTranslation(language, "login")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-xs text-secondary">
           {getTranslation(language, "haveAccount")}{" "}
-          <Link href="/signup" className="font-semibold text-tertiary underline hover:text-primary transition-colors">
+          <Link href="/signup" className="font-semibold text-brand-mint underline hover:text-primary transition-colors">
             {getTranslation(language, "signUpLink")}
           </Link>
         </p>

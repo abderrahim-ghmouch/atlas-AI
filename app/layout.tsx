@@ -36,7 +36,7 @@ export default function RootLayout({
       lang="fr"
       className={`${notoSerif.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#F8FAFC]">
+      <body className="min-h-full flex flex-col bg-background text-primary">
         <ClientWrapper>{children}</ClientWrapper>
       </body>
     </html>
