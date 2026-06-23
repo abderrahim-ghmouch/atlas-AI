@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setIsClient(true);
     const stored = localStorage.getItem("language") as Language;
-    if (stored && ["fr"].includes(stored)) {
+    if (stored && ["fr", "en"].includes(stored)) {
       setLanguageState(stored);
     }
   }, []);

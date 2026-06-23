@@ -106,19 +106,24 @@ function parseMarkdown(text: string) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [studyContext, setStudyContext] = useState<StudyContext | null>(null);
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Layout states
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  // Layout & Customization states
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeModal, setActiveModal] = useState<"profile" | "settings" | null>(null);
   const [chatFontSize, setChatFontSize] = useState<"text-[11px]" | "text-[13px]" | "text-[15px]">("text-[13px]");
   const [chatLineHeight, setChatLineHeight] = useState<"leading-tight" | "leading-normal" | "leading-relaxed">("leading-normal");
+  const [theme, setTheme] = useState("cream");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  const profileImageInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleUpdateFontSize = (size: "text-[11px]" | "text-[13px]" | "text-[15px]") => {
     setChatFontSize(size);
@@ -128,6 +133,42 @@ export default function DashboardPage() {
   const handleUpdateLineHeight = (height: "leading-tight" | "leading-normal" | "leading-relaxed") => {
     setChatLineHeight(height);
     localStorage.setItem("mgscholar-settings-line-height", height);
+  };
+
+  const handleUpdateTheme = (newTheme: string) => {
+    setTheme(newTheme);
+    localStorage.setItem("mgscholar-theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+  };
+
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfileImage(base64String);
+        localStorage.setItem("mgscholar-profile-image", base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.max(36, Math.min(textarea.scrollHeight, 200))}px`;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      const form = e.currentTarget.form;
+      if (form) {
+        form.requestSubmit();
+      }
+    }
   };
 
   // Discussions & Files states
@@ -148,6 +189,17 @@ export default function DashboardPage() {
     if (savedSize) setChatFontSize(savedSize as any);
     if (savedHeight) setChatLineHeight(savedHeight as any);
 
+    const savedTheme = localStorage.getItem("mgscholar-theme") || "cream";
+    setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    const savedImage = localStorage.getItem("mgscholar-profile-image");
+    if (savedImage) setProfileImage(savedImage);
+
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+
     async function loadDashboardData() {
       try {
         const resMe = await fetch("/api/auth/me");
@@ -156,6 +208,10 @@ export default function DashboardPage() {
           return;
         }
         const meData = await resMe.json();
+        if (meData.success) {
+          setUserProfile(meData.user);
+        }
+
         if (!meData.success || !meData.studyContext) {
           const localContext = getStudyContext();
           if (localContext) {
@@ -247,7 +303,7 @@ export default function DashboardPage() {
       setActiveDiscussionId(id);
       setMessages(disc.messages);
     }
-    setLeftSidebarOpen(false);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   };
 
   // Scroll to bottom when messages list updates
@@ -267,6 +323,9 @@ export default function DashboardPage() {
     const newMessages: Message[] = [...messages, { role: "user", content: textToSend }];
     setMessages(newMessages);
     setInputValue("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     setIsLoading(true);
     setError(null);
 
@@ -418,7 +477,7 @@ export default function DashboardPage() {
     setDiscussions((prev) => [newDisc, ...prev]);
     setActiveDiscussionId(newDisc.id);
     setMessages(newDisc.messages);
-    setLeftSidebarOpen(false);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
 
     try {
       await fetch("/api/discussions", {
@@ -549,34 +608,88 @@ export default function DashboardPage() {
     }
   ];
 
+  const renderInputArea = () => {
+    return (
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="relative border border-brand-mint/20 rounded-xl bg-surface flex items-end p-1.5 focus-within:border-brand-mint transition-colors">
+          {/* Integrated file upload button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 rounded-lg text-secondary hover:bg-brand-mint/10 hover:text-primary transition-colors flex-shrink-0 cursor-pointer"
+            title={language === "fr" ? "Importer un cours" : "Import a course"}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </button>
+
+          {/* Auto-expanding textarea */}
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={inputValue}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
+            placeholder={language === "fr" ? "Posez votre question sur ce cours..." : "Ask your question about this course..."}
+            className="flex-1 resize-none bg-transparent outline-none py-2 px-3 text-xs text-primary placeholder:text-primary/30 max-h-[200px] min-h-[36px]"
+          />
+
+          {/* Send button inside the right side */}
+          <button
+            type="submit"
+            disabled={!inputValue.trim() || isLoading}
+            aria-label="Envoyer"
+            className="p-2 rounded-lg bg-accent-coral text-white hover:bg-[#E0503C]/95 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 cursor-pointer"
+          >
+            <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+            </svg>
+          </button>
+        </div>
+      </form>
+    );
+  };
+
   return (
     <div className="h-screen bg-background text-primary flex overflow-hidden font-sans relative">
       {/* Mobile Backdrops */}
-      {(leftSidebarOpen || rightSidebarOpen) && (
+      {sidebarOpen && (
         <div
           onClick={() => {
-            setLeftSidebarOpen(false);
-            setRightSidebarOpen(false);
+            setSidebarOpen(false);
           }}
-          className="fixed inset-0 bg-[#0F172A]/20 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
         />
       )}
 
       {/* LEFT ASIDE: Chat History Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar-bg border-r border-brand-mint/15 flex flex-col justify-between h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
-          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } shadow-subtle`}
+        className={`fixed inset-y-0 left-0 z-40 bg-sidebar-bg border-r border-brand-mint/15 flex flex-col justify-between h-full transform transition-all duration-300 ease-in-out ${
+          sidebarOpen
+            ? "translate-x-0 w-64 lg:relative"
+            : "-translate-x-full w-64 lg:w-0 lg:relative lg:translate-x-0 lg:border-r-0 lg:overflow-hidden"
+        }`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Sidebar Header */}
           <div className="px-5 py-4 border-b border-brand-mint/15 flex items-center justify-between">
-            <span className="font-serif text-lg font-bold tracking-tight text-primary">mgscholar.ai</span>
+            <div className="flex items-center gap-2">
+              <img
+                src="/logo.png"
+                alt="atlasai Logo"
+                className="w-7 h-7 object-contain"
+              />
+              <span className="font-chelsea text-xl font-bold tracking-tight text-primary select-none">
+                {getTranslation(language, "appName")}
+              </span>
+            </div>
             <button
-              onClick={() => setLeftSidebarOpen(false)}
+              onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-secondary hover:text-primary text-xs font-semibold transition-colors duration-200"
             >
-              Fermer
+              {getTranslation(language, "close")}
             </button>
           </div>
 
@@ -584,16 +697,16 @@ export default function DashboardPage() {
           <div className="p-4 border-b border-brand-mint/10">
             <button
               onClick={handleNewChat}
-              className="w-full rounded-xl bg-brand-mint py-2 text-xs font-semibold text-white hover:bg-[#1B8074] hover:scale-[1.01] active:scale-95 transition-all duration-200 shadow-subtle cursor-pointer text-center"
+              className="w-full rounded-xl bg-brand-mint py-2 text-xs font-semibold text-white hover:bg-[#1B8074]/95 transition-colors cursor-pointer text-center"
             >
-              + Nouvelle discussion
+              {getTranslation(language, "newChat")}
             </button>
           </div>
 
           {/* Discussions List */}
           <div className="flex-1 overflow-y-auto px-2 py-4 space-y-1.5">
             <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-secondary/60 mb-2">
-              Discussions récentes
+              {getTranslation(language, "recentDiscussions")}
             </p>
             {discussions
               .filter((d) => d.subjectId === studyContext.subjectId)
@@ -602,9 +715,9 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={d.id}
-                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl border-l-2 transition-all duration-200 hover:scale-[1.01] active:scale-95 ${
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl border-l-2 transition-colors ${
                       isActive
-                        ? "bg-surface text-primary border-brand-mint shadow-subtle"
+                        ? "bg-surface text-primary border-brand-mint"
                         : "bg-transparent text-primary/80 border-transparent hover:bg-surface/40"
                     }`}
                   >
@@ -619,10 +732,10 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={(e) => handleDeleteDiscussion(e, d.id)}
-                      className="w-4 h-4 flex items-center justify-center rounded-md text-secondary hover:text-red-500 hover:bg-red-50 transition-all duration-200 cursor-pointer"
+                      className="w-4 h-4 flex items-center justify-center rounded-md text-secondary hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                       title="Supprimer"
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
@@ -635,383 +748,330 @@ export default function DashboardPage() {
         {/* User Session Footer */}
         <div className="border-t border-brand-mint/15 p-4 bg-sidebar-bg/60 flex flex-col gap-2">
           <div className="flex items-center gap-2.5 px-1 py-1.5">
-            <div className="w-8 h-8 rounded-full bg-brand-mint/10 flex items-center justify-center font-bold text-xs text-brand-mint border border-brand-mint/20">
-              U
-            </div>
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Avatar"
+                className="w-8 h-8 rounded-full object-cover border border-brand-mint/20 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-brand-mint/10 flex items-center justify-center font-bold text-xs text-brand-mint border border-brand-mint/20 flex-shrink-0">
+                U
+              </div>
+            )}
             <div className="flex flex-col truncate">
-              <span className="text-xs font-bold text-primary truncate">Étudiant</span>
-              <span className="text-[10px] text-secondary truncate">Semestre {studyContext.semester}</span>
+              <span className="text-xs font-bold text-primary truncate">
+                {userProfile?.name || "Étudiant"}
+              </span>
+              <span className="text-[10px] text-secondary truncate">
+                {getTranslation(language, "semester")} {studyContext.semester}
+              </span>
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-2 mt-1">
             <button
               onClick={() => setActiveModal("profile")}
-              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-all duration-200 cursor-pointer"
+              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-colors cursor-pointer"
             >
-              Profil
+              {getTranslation(language, "profile")}
             </button>
             <button
               onClick={() => setActiveModal("settings")}
-              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-all duration-200 cursor-pointer"
+              className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-primary hover:bg-brand-mint/10 transition-colors cursor-pointer"
             >
-              Réglages
+              {getTranslation(language, "settings")}
             </button>
           </div>
+
+          <Link
+            href="/onboarding"
+            className="text-center rounded-xl border border-brand-mint/25 bg-surface py-1.5 text-[11px] font-semibold text-brand-mint hover:bg-brand-mint/10 transition-colors block"
+          >
+            {getTranslation(language, "changeStudyContext")}
+          </Link>
 
           <button
             onClick={handleLogout}
-            className="w-full text-center rounded-xl border border-red-200 bg-red-50 py-1.5 text-xs font-semibold text-error hover:bg-red-100 hover:scale-[1.01] active:scale-95 transition-all duration-200 cursor-pointer mt-1"
+            className="w-full text-center rounded-xl border border-red-200 bg-red-50 py-1.5 text-xs font-semibold text-error hover:bg-red-100 transition-colors cursor-pointer"
           >
-            Déconnexion
+            {getTranslation(language, "logout")}
           </button>
         </div>
       </aside>
+
+      {/* Floating mobile menu toggle button when sidebar is closed */}
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-xl border border-brand-mint/20 bg-surface text-primary hover:bg-brand-mint/5 cursor-pointer flex items-center justify-center transition-colors"
+          aria-label="Open Menu"
+        >
+          <svg className="w-5 h-5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      )}
 
       {/* CENTER PANE: Conversational Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-surface border-b border-brand-mint/10 shadow-subtle z-10 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {/* Toggle Left Sidebar on Mobile */}
-            <button
-              onClick={() => setLeftSidebarOpen(true)}
-              className="lg:hidden p-1.5 rounded-xl border border-brand-mint/20 text-primary hover:bg-brand-mint/5 cursor-pointer flex items-center justify-center transition-all duration-200 active:scale-90"
-              aria-label="Menu"
-            >
-              <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="flex items-center gap-2.5">
-              {selectedUniv?.logo && (
+        {/* Scrollable conversation thread or Empty Centered State */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-background relative">
+          {messages.length <= 1 ? (
+            /* EMPTY STATE: Centered welcome query and input bar */
+            <div className="flex-1 overflow-y-auto flex flex-col justify-center items-center px-6 py-12 max-w-2xl mx-auto w-full">
+              <div className="text-center mb-8 flex flex-col items-center select-none">
                 <img
-                  src={`/univ-logos/${selectedUniv.logo}`}
-                  alt=""
-                  className="w-8 h-8 object-contain bg-white p-0.5 border border-brand-mint/10 rounded-md flex-shrink-0"
+                  src="/logo.png"
+                  alt="atlasai Logo"
+                  className="w-20 h-20 object-contain mb-5"
                 />
-              )}
-              <div className="flex flex-col">
-                <span className="font-serif text-sm font-bold tracking-tight text-primary">
-                  {studyContext.subjectLabel}
-                </span>
-                <span className="text-[10px] text-secondary font-medium uppercase tracking-wide">
-                  {studyContext.universityLabel} — S{studyContext.semester}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Toggle Right Drawer on Mobile */}
-            <button
-              onClick={() => setRightSidebarOpen(true)}
-              className="lg:hidden rounded-xl border border-brand-mint/25 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-brand-mint/5 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5 fill-none stroke-current text-brand-mint" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Polycopiés
-            </button>
-            <Link
-              href="/onboarding"
-              className="rounded-xl border border-brand-mint/25 px-3.5 py-1.5 text-xs font-semibold text-brand-mint bg-surface hover:bg-brand-mint/10 hover:scale-[1.02] active:scale-95 transition-all duration-200"
-            >
-              Matières
-            </Link>
-          </div>
-        </header>
-
-        {/* Scrollable conversation thread */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 bg-background flex flex-col justify-between">
-          <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-between">
-            
-            {/* Subject Tabs Switcher */}
-            <div className="flex flex-wrap gap-1.5 mb-6 border-b border-brand-mint/10 pb-3">
-              {(studyContext.selectedSubjectIds || [studyContext.subjectId]).map((subId) => {
-                const isActive = studyContext.subjectId === subId;
-                const subData = getSubjectById(studyContext.universityId, studyContext.branchId, subId);
-                const label = subData ? getTranslation(language, subData.labelKey as TranslationKey) : subId;
-                return (
-                  <button
-                    key={subId}
-                    onClick={() => handleSwitchSubject(subId)}
-                    className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
-                      isActive
-                        ? "bg-brand-mint/10 border-brand-mint text-brand-mint font-extrabold"
-                        : "bg-surface border-brand-mint/10 text-secondary hover:bg-brand-mint/5 hover:text-primary"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Error Notification */}
-            {error && (
-              <div className="mb-4 rounded-2xl border border-accent-coral bg-red-50 p-4 text-accent-coral text-xs shadow-subtle">
-                <p className="font-bold mb-1">⚠️ Erreur de configuration</p>
-                <p className="mb-2 font-medium">{error}</p>
-                <p className="text-[10px] opacity-90 leading-relaxed">
-                  Veuillez spécifier votre clé <code>GEMINI_API_KEY</code> dans le fichier <code>.env.local</code> et relancer le serveur.
+                <h1 className="font-chelsea text-3xl font-bold tracking-wide text-primary mb-2">
+                  atlasai
+                </h1>
+                <p className="text-base font-semibold text-secondary leading-relaxed">
+                  {language === "fr" ? "Que souhaitez-vous étudier aujourd'hui ?" : "What would you like to study today?"}
                 </p>
               </div>
-            )}
 
-            {/* Message Cards */}
-            <div className="space-y-4 mb-6 flex-1">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl border px-4 py-3 shadow-subtle ${chatFontSize} ${chatLineHeight} ${
-                      msg.role === "user"
-                        ? "bg-brand-mint/10 border-brand-mint/20 text-primary rounded-tr-none"
-                        : "bg-surface border-brand-mint/10 text-primary rounded-tl-none"
-                    }`}
-                  >
-                    {msg.role === "model" ? (
-                      <div className="whitespace-pre-line text-primary opacity-95">
-                        {parseMarkdown(msg.content)}
-                      </div>
-                    ) : (
-                      <p className="font-semibold">{msg.content}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+              <div className="w-full">
+                {renderInputArea()}
+              </div>
 
-              {/* Skeleton Loader */}
-              {isLoading && (
-                <div className="flex justify-start w-full animate-pulse">
-                  <div className="max-w-[80%] w-full rounded-2xl rounded-tl-none border border-brand-mint/10 bg-surface px-4 py-3.5 space-y-2">
-                    <div className="h-2 bg-secondary/30 rounded-full w-2/3" />
-                    <div className="h-2 bg-secondary/20 rounded-full w-5/6" />
-                    <div className="h-2 bg-secondary/10 rounded-full w-1/2" />
-                  </div>
+              {messages.length === 1 && !isLoading && (
+                <div className="grid grid-cols-1 gap-2 mt-6 w-full">
+                  {suggestions.map((sug, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleSendMessage(sug.text)}
+                      className="w-full text-left rounded-xl border border-brand-mint/20 bg-surface hover:bg-brand-mint/5 px-4 py-3 text-xs font-semibold text-primary transition-colors cursor-pointer"
+                    >
+                      <span className="truncate">{sug.label}</span>
+                    </button>
+                  ))}
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
+          ) : (
+            /* ACTIVE STATE: Scrollable history pane and sticky bottom input overlay */
+            <div className="flex-1 flex flex-col overflow-hidden relative h-full">
+              {/* Messages list */}
+              <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+                <div className="max-w-2xl mx-auto w-full space-y-4">
+                  {/* Subject Tabs Switcher */}
+                  <div className="flex flex-wrap gap-1.5 mb-6 border-b border-brand-mint/10 pb-3">
+                    {(studyContext.selectedSubjectIds || [studyContext.subjectId]).map((subId) => {
+                      const isActive = studyContext.subjectId === subId;
+                      const subData = getSubjectById(studyContext.universityId, studyContext.branchId, subId);
+                      const label = subData ? getTranslation(language, subData.labelKey as TranslationKey) : subId;
+                      return (
+                        <button
+                          key={subId}
+                          onClick={() => handleSwitchSubject(subId)}
+                          className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-colors cursor-pointer ${
+                            isActive
+                              ? "bg-brand-mint/10 border-brand-mint text-brand-mint font-extrabold"
+                              : "bg-surface border-brand-mint/10 text-secondary hover:bg-brand-mint/5 hover:text-primary"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-            {/* Suggested Chips */}
-            {messages.length === 1 && !isLoading && (
-              <div className="grid grid-cols-1 gap-2 mb-6">
-                {suggestions.map((sug, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => handleSendMessage(sug.text)}
-                    className="w-full text-left rounded-2xl border border-brand-mint/20 bg-surface hover:bg-brand-mint/5 px-4 py-3.5 text-xs font-semibold text-primary transition-all duration-200 hover:scale-[1.01] active:scale-95 cursor-pointer shadow-subtle hover:border-brand-mint/50 flex items-center gap-2.5"
-                  >
-                    {i === 0 ? (
-                      <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8M12 3a7 7 0 00-7 7c0 2.4 1.2 4.5 3 5.8V17a1 1 0 001 1h6a1 1 0 001-1v-1.2c1.8-1.3 3-3.4 3-5.8a7 7 0 00-7-7z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                  {/* Error Notification */}
+                  {error && (
+                    <div className="mb-4 rounded-2xl border border-accent-coral bg-red-50 p-4 text-accent-coral text-xs">
+                      <p className="font-bold mb-1">⚠️ Erreur de configuration</p>
+                      <p className="mb-2 font-medium">{error}</p>
+                      <p className="text-[10px] opacity-90 leading-relaxed">
+                        Veuillez spécifier votre clé <code>GEMINI_API_KEY</code> dans le fichier <code>.env.local</code> et relancer le serveur.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Conversation cards */}
+                  <div className="space-y-4 mb-6">
+                    {messages.map((msg, index) => (
+                      <div
+                        key={index}
+                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl border px-4 py-3 ${chatFontSize} ${chatLineHeight} ${
+                            msg.role === "user"
+                              ? "bg-brand-mint/10 border-brand-mint/20 text-primary rounded-tr-none"
+                              : "bg-surface border-brand-mint/10 text-primary rounded-tl-none"
+                          }`}
+                        >
+                          {msg.role === "model" ? (
+                            <div className="whitespace-pre-line text-primary opacity-95">
+                              {parseMarkdown(msg.content)}
+                            </div>
+                          ) : (
+                            <p className="font-semibold">{msg.content}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Skeleton Loader */}
+                    {isLoading && (
+                      <div className="flex justify-start w-full animate-pulse">
+                        <div className="max-w-[80%] w-full rounded-2xl rounded-tl-none border border-brand-mint/10 bg-surface px-4 py-3.5 space-y-2">
+                          <div className="h-2 bg-secondary/30 rounded-full w-2/3" />
+                          <div className="h-2 bg-secondary/20 rounded-full w-5/6" />
+                          <div className="h-2 bg-secondary/10 rounded-full w-1/2" />
+                        </div>
+                      </div>
                     )}
-                    <span>{sug.label}</span>
-                  </button>
-                ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Input Box */}
-            <form onSubmit={handleSubmit} className="relative sticky bottom-0 bg-background pt-2 pb-4 flex-shrink-0">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                disabled={isLoading}
-                placeholder="Posez votre question sur ce cours..."
-                className="w-full rounded-2xl border border-brand-mint/20 bg-surface py-3.5 pl-12 pr-4 text-xs text-primary placeholder:text-primary/30 outline-none hover:border-brand-mint/40 focus:border-brand-mint focus:ring-2 focus:ring-brand-mint/15 transition-all disabled:opacity-70 shadow-subtle"
-              />
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                aria-label="Envoyer"
-                className="absolute left-2 top-[52%] -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-xl bg-accent-coral text-white hover:bg-[#E0503C] hover:scale-105 active:scale-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-subtle"
-              >
-                ↑
-              </button>
-            </form>
-          </div>
+              {/* Bottom fixed input overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-6 pb-4 px-6 z-10 flex justify-center border-t border-brand-mint/5">
+                <div className="max-w-2xl w-full">
+                  {renderInputArea()}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* RIGHT ASIDE: Documents & Polycopiés Drawer */}
-      <aside
-        className={`fixed inset-y-0 right-0 z-40 w-64 bg-sidebar-bg border-l border-brand-mint/15 flex flex-col p-4 h-full transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
-          rightSidebarOpen ? "translate-x-0" : "translate-x-full"
-        } shadow-subtle flex-shrink-0`}
-      >
-        <div className="flex items-center justify-between border-b border-brand-mint/15 pb-3 mb-4">
-          <span className="font-serif text-sm font-bold text-primary flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-brand-mint fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Polycopiés du cours
-          </span>
-          <button
-            onClick={() => setRightSidebarOpen(false)}
-            className="lg:hidden text-secondary hover:text-primary text-xs font-semibold transition-colors duration-200"
-          >
-            Fermer
-          </button>
-        </div>
-
-        {/* Drag & Drop Upload Zone */}
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleFileDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 ${
-            isDragging
-              ? "border-brand-mint bg-brand-mint/10"
-              : "border-brand-mint/20 hover:border-brand-mint/50 bg-background/40"
-          }`}
-        >
-          <svg className="w-6 h-6 text-brand-mint mb-1.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          <p className="text-xs font-semibold text-primary mb-0.5">Importer un cours</p>
-          <p className="text-[10px] text-secondary">Glissez un PDF ou cliquez ici</p>
-          <input
-            type="file"
-            accept=".pdf,.txt,.docx"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
-        </div>
-
-        {/* Uploaded Files list */}
-        <div className="flex-1 overflow-y-auto mt-4 space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-secondary/60 mb-2">
-            Documents actifs ({uploadedFiles.filter((f) => f.toggled).length})
-          </p>
-          
-          {uploadedFiles.map((file) => (
-            <div
-              key={file.id}
-              onClick={() => handleToggleFile(file.id)}
-              className={`border rounded-xl p-3 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-95 flex items-start justify-between ${
-                file.toggled
-                  ? "bg-surface border-brand-mint shadow-subtle opacity-100"
-                  : "bg-surface border-brand-mint/10 opacity-50 shadow-subtle hover:opacity-80"
-              }`}
-            >
-              <div className="flex items-start gap-2 max-w-[70%]">
-                <svg className="w-3.5 h-3.5 text-brand-mint mt-0.5 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <div className="flex flex-col truncate">
-                  <span className="text-xs font-medium text-primary truncate leading-tight">
-                    {file.name}
-                  </span>
-                  <span className="text-[9px] text-secondary mt-0.5">
-                    {file.size}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-                <button
-                  onClick={(e) => handleDeleteFile(e, file.id)}
-                  className="w-4 h-4 flex items-center justify-center rounded-md text-secondary hover:text-red-500 hover:bg-red-55 transition-all duration-200 cursor-pointer"
-                  title="Supprimer"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-                <div
-                  className={`w-4 h-4 rounded-md border flex items-center justify-center text-[8px] transition-colors duration-200 ${
-                    file.toggled
-                      ? "bg-brand-mint border-brand-mint text-white font-bold"
-                      : "bg-transparent border-brand-mint/30"
-                  }`}
-                >
-                  {file.toggled && "✓"}
-                </div>
-              </div>
-            </div>
-          ))}
-          {uploadedFiles.length === 0 && (
-            <p className="text-[11px] text-secondary text-center py-6 leading-relaxed">
-              Aucun polycopié importé. Vos questions recevront des réponses génériques de la matière.
-            </p>
-          )}
-        </div>
-      </aside>
 
       {/* MODALS: Profile & Settings */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm p-4">
-          <div className="bg-surface border border-brand-mint/15 rounded-2xl shadow-overlay max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-surface border border-brand-mint/15 rounded-2xl shadow-overlay max-w-lg w-full p-8 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex justify-between items-start border-b border-brand-mint/10 pb-3 mb-4">
               <h3 className="font-serif text-sm font-bold text-primary">
-                {activeModal === "profile" ? "Profil Étudiant" : "Réglages de la plateforme"}
+                {activeModal === "profile" 
+                  ? getTranslation(language, "studentProfile") 
+                  : getTranslation(language, "platformSettings")}
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
                 className="text-xs font-bold text-secondary hover:text-primary transition-colors duration-200 cursor-pointer"
               >
-                Fermer
+                {getTranslation(language, "close")}
               </button>
             </div>
 
             {activeModal === "profile" ? (
               <div className="space-y-4 text-xs">
                 <div className="flex items-center gap-3 bg-sidebar-bg/40 p-3.5 rounded-xl border border-brand-mint/10">
-                  <div className="w-10 h-10 rounded-full bg-brand-mint/10 border border-brand-mint/20 flex items-center justify-center font-bold text-sm text-brand-mint">
-                    U
+                  <div
+                    onClick={() => profileImageInputRef.current?.click()}
+                    className="relative w-12 h-12 rounded-full cursor-pointer overflow-hidden border border-brand-mint/20 group flex-shrink-0"
+                  >
+                    {profileImage ? (
+                      <img
+                        src={profileImage}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-brand-mint/10 flex items-center justify-center font-bold text-base text-brand-mint">
+                        U
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-200">
+                      <span className="text-[8px] text-white font-extrabold select-none">
+                        Modifier
+                      </span>
+                    </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-primary">Étudiant</h4>
+                    <h4 className="font-bold text-primary">{userProfile?.name || "Étudiant"}</h4>
                     <p className="text-secondary text-[10px]">{studyContext.universityLabel}</p>
                   </div>
                 </div>
                 <div className="space-y-2 text-primary/80">
-                  <p><strong>Filière :</strong> {studyContext.branchLabel}</p>
-                  <p><strong>Niveau d'études :</strong> Semestre {studyContext.semester}</p>
-                  <p><strong>Matières configurées :</strong> {(studyContext.selectedSubjectIds || []).length} modules actifs</p>
+                  <p><strong>{getTranslation(language, "profileMajor")} :</strong> {studyContext.branchLabel}</p>
+                  <p><strong>{getTranslation(language, "profileLevel")} :</strong> {getTranslation(language, "semester")} {studyContext.semester}</p>
+                  <p><strong>{getTranslation(language, "profileActiveModules")} :</strong> {(studyContext.selectedSubjectIds || []).length} {getTranslation(language, "profileActiveModulesSuffix")}</p>
                 </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={profileImageInputRef}
+                  onChange={handleProfileImageChange}
+                  className="hidden"
+                />
               </div>
             ) : (
               <div className="space-y-4 text-xs">
+                {/* Language Switcher */}
                 <div className="space-y-1.5">
-                  <span className="block font-bold text-primary">Langue de l'interface</span>
+                  <span className="block font-bold text-primary">{getTranslation(language, "interfaceLanguage")}</span>
                   <div className="flex gap-2">
-                    <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-brand-mint/10 text-brand-mint border border-brand-mint/20">
+                    <button
+                      onClick={() => setLanguage("fr")}
+                      className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold transition-colors cursor-pointer ${
+                        language === "fr"
+                          ? "bg-brand-mint text-white border-brand-mint"
+                          : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
+                      }`}
+                    >
                       FRANÇAIS (FR)
-                    </span>
+                    </button>
+                    <button
+                      onClick={() => setLanguage("en")}
+                      className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold transition-colors cursor-pointer ${
+                        language === "en"
+                          ? "bg-brand-mint text-white border-brand-mint"
+                          : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
+                      }`}
+                    >
+                      ENGLISH (EN)
+                    </button>
                   </div>
                 </div>
 
+                {/* Theme Switcher */}
                 <div className="space-y-2.5 border-t border-brand-mint/10 pt-3.5">
-                  <span className="block font-bold text-primary">Taille du texte</span>
+                  <span className="block font-bold text-primary">{getTranslation(language, "themeSelector")}</span>
                   <div className="flex gap-2">
                     {[
-                      { label: "Petit", value: "text-[11px]" },
-                      { label: "Moyen", value: "text-[13px]" },
-                      { label: "Grand", value: "text-[15px]" }
+                      { label: "Cream", value: "cream" },
+                      { label: "Dark Elephant", value: "dark" },
+                      { label: "Nordic Ice", value: "nordic" }
+                    ].map((t) => (
+                      <button
+                        key={t.value}
+                        onClick={() => handleUpdateTheme(t.value)}
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-colors cursor-pointer ${
+                          theme === t.value
+                            ? "bg-brand-mint text-white border-brand-mint"
+                            : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Text Size Switcher */}
+                <div className="space-y-2.5 border-t border-brand-mint/10 pt-3.5">
+                  <span className="block font-bold text-primary">{getTranslation(language, "textSize")}</span>
+                  <div className="flex gap-2">
+                    {[
+                      { label: getTranslation(language, "textSmall"), value: "text-[11px]" },
+                      { label: getTranslation(language, "textMedium"), value: "text-[13px]" },
+                      { label: getTranslation(language, "textLarge"), value: "text-[15px]" }
                     ].map((sz) => (
                       <button
                         key={sz.value}
                         onClick={() => handleUpdateFontSize(sz.value as any)}
-                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-colors cursor-pointer ${
                           chatFontSize === sz.value
-                            ? "bg-brand-mint text-white border-brand-mint shadow-subtle"
+                            ? "bg-brand-mint text-white border-brand-mint"
                             : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
                         }`}
                       >
@@ -1021,20 +1081,21 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
+                {/* Line Spacing Switcher */}
                 <div className="space-y-2.5 border-t border-brand-mint/10 pt-3.5">
-                  <span className="block font-bold text-primary">Espacement des lignes</span>
+                  <span className="block font-bold text-primary">{getTranslation(language, "lineSpacing")}</span>
                   <div className="flex gap-2">
                     {[
-                      { label: "Compact", value: "leading-tight" },
-                      { label: "Normal", value: "leading-normal" },
-                      { label: "Aéré", value: "leading-relaxed" }
+                      { label: getTranslation(language, "spacingCompact"), value: "leading-tight" },
+                      { label: getTranslation(language, "spacingNormal"), value: "leading-normal" },
+                      { label: getTranslation(language, "spacingRelaxed"), value: "leading-relaxed" }
                     ].map((lh) => (
                       <button
                         key={lh.value}
                         onClick={() => handleUpdateLineHeight(lh.value as any)}
-                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-medium transition-colors cursor-pointer ${
                           chatLineHeight === lh.value
-                            ? "bg-brand-mint text-white border-brand-mint shadow-subtle"
+                            ? "bg-brand-mint text-white border-brand-mint"
                             : "bg-transparent border-brand-mint/20 text-secondary hover:border-brand-mint hover:text-primary hover:bg-brand-mint/5"
                         }`}
                       >
@@ -1045,9 +1106,9 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-1.5 border-t border-brand-mint/10 pt-3.5">
-                  <span className="block font-bold text-primary">Paramètres d'étude</span>
+                  <span className="block font-bold text-primary">{getTranslation(language, "studySettings")}</span>
                   <p className="text-secondary text-[10px] leading-relaxed">
-                    Les explications d'étude et les corrections d'examens générées par l'IA tutorielle sont configurées spécifiquement pour le programme officiel de votre établissement.
+                    {getTranslation(language, "studySettingsDesc")}
                   </p>
                 </div>
               </div>
@@ -1055,9 +1116,9 @@ export default function DashboardPage() {
             
             <button
               onClick={() => setActiveModal(null)}
-              className="mt-6 w-full rounded-xl bg-accent-coral py-2.5 text-xs font-semibold text-white hover:bg-[#E0503C] hover:scale-[1.01] active:scale-95 transition-all duration-200 cursor-pointer text-center"
+              className="mt-6 w-full rounded-xl bg-accent-coral py-2.5 text-xs font-semibold text-white hover:bg-[#E0503C]/95 transition-colors duration-200 cursor-pointer text-center"
             >
-              D'accord
+              {getTranslation(language, "okButton")}
             </button>
           </div>
         </div>

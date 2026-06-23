@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Serif, Inter, JetBrains_Mono } from "next/font/google";
+import { Noto_Serif, Inter, JetBrains_Mono, Chelsea_Market } from "next/font/google";
 import "./globals.css";
 import { ClientWrapper } from "./ClientWrapper";
 
@@ -21,8 +21,14 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400"],
 });
 
+const chelseaMarket = Chelsea_Market({
+  variable: "--font-chelsea-market",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 export const metadata: Metadata = {
-  title: "mgscholar.ai",
+  title: "atlasai",
   description: "Learning platform for students",
 };
 
@@ -34,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${notoSerif.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${notoSerif.variable} ${inter.variable} ${jetbrainsMono.variable} ${chelseaMarket.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-primary">
         <ClientWrapper>{children}</ClientWrapper>

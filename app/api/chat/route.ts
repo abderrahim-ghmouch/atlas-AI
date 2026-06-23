@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     const ai = new GoogleGenAI({ apiKey });
 
     const systemInstruction = [
-      "You are an elite academic AI tutor on the mgscholar.ai platform, specifically tailored for Moroccan university students.",
+      "You are an elite academic AI tutor on the atlasai platform, specifically tailored for Moroccan university students.",
       "",
       "Student Academic Context:",
       `- University: ${studyContext.universityLabel}`,

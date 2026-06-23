@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { auth } from "@/auth";
 import { deleteDiscussion } from "@/lib/db";
 
 export async function DELETE(
@@ -7,8 +7,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
