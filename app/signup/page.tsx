@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { useLanguage } from "@/app/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 import { AuthHeader } from "@/app/components/AuthHeader";
@@ -10,10 +10,38 @@ import { AuthHeader } from "@/app/components/AuthHeader";
 export default function SignUpPage() {
   const { language } = useLanguage();
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/onboarding");
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur d'inscription");
+      }
+
+      router.push("/onboarding");
+    } catch (err: any) {
+      setError(err.message || "Une erreur est survenue.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -31,6 +59,11 @@ export default function SignUpPage() {
         </div>
 
         <form className="flex flex-col gap-4 bg-surface border border-[#E2E8F0] p-6 rounded-md shadow-subtle" onSubmit={handleSubmit}>
+          {error && (
+            <div className="rounded bg-red-50 p-2.5 text-[10px] text-red-600 border border-red-200">
+              {error}
+            </div>
+          )}
           <div>
             <label htmlFor="name" className="mb-1 block text-xs font-semibold text-primary">
               {getTranslation(language, "fullName")}
@@ -75,9 +108,10 @@ export default function SignUpPage() {
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-md bg-primary py-2.5 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="mt-2 w-full rounded-md bg-primary py-2.5 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors cursor-pointer disabled:opacity-50"
           >
-            {getTranslation(language, "createAccountButton")}
+            {isLoading ? "Inscription..." : getTranslation(language, "createAccountButton")}
           </button>
         </form>
 

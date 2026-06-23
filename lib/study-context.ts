@@ -1,6 +1,7 @@
 export type StudyContext = {
   universityId: string;
   branchId: string;
+  semester: number; // 1 to 6
   selectedSubjectIds: string[];
   subjectId: string;
   universityLabel: string;
@@ -35,8 +36,9 @@ export function buildAiStudyPrompt(context: StudyContext): string {
     "Student profile:",
     `- University: ${context.universityLabel}`,
     `- Branch / major: ${context.branchLabel}`,
+    `- Semester level: Semestre ${context.semester}`,
     `- Subject to learn: ${context.subjectLabel}`,
     "",
-    "Provide study resources, explanations, and exam-oriented answers tailored to this curriculum.",
+    "Provide study resources, explanations, and exam-oriented answers tailored to this curriculum in French.",
   ].join("\n");
 }

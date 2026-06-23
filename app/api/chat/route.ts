@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { getUserDocuments } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +11,11 @@ export async function POST(req: NextRequest) {
         { error: "GEMINI_API_KEY is not configured in .env.local" },
         { status: 500 }
       );
+    }
+
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const body = await req.json();
@@ -28,26 +35,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const allDocs = await getUserDocuments(user.id);
+    const activeDocs = allDocs.filter((d: any) => d.toggled);
+
+    const documentReferenceText = activeDocs.length > 0 
+      ? [
+          "--- DEBUT DOCUMENTS DE RÉFÉRENCE DE L'ÉTUDIANT ---",
+          "Voici le contenu des documents/polycopiés chargés par l'étudiant. Utilisez ces textes en priorité absolue comme base de connaissances pour répondre aux questions, citer des passages, et structurer vos explications académiques :",
+          "",
+          activeDocs.map((d: any) => `[Fichier: ${d.name}]\n${d.content}`).join("\n\n---\n\n"),
+          "--- FIN DOCUMENTS DE RÉFÉRENCE ---"
+        ].join("\n")
+      : "";
+
     const ai = new GoogleGenAI({ apiKey });
 
-    // Build specialized system instructions based on the student's university context
     const systemInstruction = [
       "You are an elite academic AI tutor on the mgscholar.ai platform, specifically tailored for Moroccan university students.",
       "",
       "Student Academic Context:",
       `- University: ${studyContext.universityLabel}`,
       `- Faculty / Branch / Major: ${studyContext.branchLabel}`,
+      `- Semester Level: Semestre ${studyContext.semester}`,
       `- Current Module / Subject: ${studyContext.subjectLabel}`,
+      "",
+      documentReferenceText,
       "",
       "Guidelines for your responses:",
       "1. Language & Tone: Always respond in clear, academic French. Maintain a professional, encouraging, and educational tone.",
       "2. Academic Rigor: Provide structured, exam-oriented responses. Use bullet points, bold key terms, and refer to standard university modules. If the subject is law (droit), refer to Moroccan legal codes (e.g., Code de commerce, Dahir des obligations et des contrats - DOC) where appropriate.",
       "3. Contextual Relevance: Keep your explanations aligned with typical Moroccan higher education syllabus expectations for the selected module.",
-      "4. Formatting: Use markdown (bolding, lists, and tables) to make your answers easy to read and study from.",
+      "4. Reference Documents: If reference documents are provided above, read their content carefully. Answer the student's questions by strictly adhering to the facts, structures, and definitions in those documents. Mention which document you are referencing in your reply (e.g., 'D'après votre polycopié [NomDuFichier]...').",
+      "5. Formatting: Use markdown (bolding, lists, and tables) to make your answers easy to read and study from.",
     ].join("\n");
 
-    // Format conversation history for the Gemini SDK
-    // Gemini expects contents to be: [{ role: 'user' | 'model', parts: [{ text: '...' }] }]
     const contents = messages.map((m: { role: string; content: string }) => ({
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.content }],

@@ -10,6 +10,23 @@ export default function OnboardingPage() {
   const { language } = useLanguage();
   const router = useRouter();
 
+  async function handleOnboardingComplete() {
+    const { getStudyContext } = await import("@/lib/study-context");
+    const context = getStudyContext();
+    if (context) {
+      try {
+        await fetch("/api/auth/me", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studyContext: context }),
+        });
+      } catch (err) {
+        console.error("Failed to sync study context:", err);
+      }
+    }
+    router.push("/dashboard");
+  }
+
   return (
     <div className="min-h-full bg-background text-primary">
       <AuthHeader authLink="login" />
@@ -25,7 +42,7 @@ export default function OnboardingPage() {
         </div>
 
         <div className="bg-surface border border-[#E2E8F0] p-6 rounded-md shadow-subtle">
-          <AcademicSelectionForm onComplete={() => router.push("/dashboard")} />
+          <AcademicSelectionForm onComplete={handleOnboardingComplete} />
         </div>
       </main>
     </div>

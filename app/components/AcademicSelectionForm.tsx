@@ -21,26 +21,32 @@ export function AcademicSelectionForm({
   const [step, setStep] = useState(1);
   const [universityId, setUniversityId] = useState("");
   const [branchId, setBranchId] = useState("");
+  const [semester, setSemester] = useState<number>(1);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedUniversity = universities.find((u) => u.id === universityId);
   const selectedBranch = selectedUniversity?.branches.find((b) => b.id === branchId);
+  
+  // Filter subjects based on selected branch and selected semester
+  const availableSubjects = selectedBranch
+    ? selectedBranch.subjects.filter((s) => s.semester === semester)
+    : [];
 
   // GSAP animation for the sliding steps and progress bar
   useGSAP(() => {
-    // Animate the sliding track
+    // Animate the sliding track (now 4 steps, each takes 25% of width)
     gsap.to(".steps-track", {
-      xPercent: -(step - 1) * 33.333,
-      duration: 0.3, // 300ms transition
+      xPercent: -(step - 1) * 25,
+      duration: 0.35,
       ease: "power2.out",
     });
 
     // Animate the progress bar fill
     gsap.to(".progress-bar-fill", {
-      width: `${(step / 3) * 100}%`,
-      duration: 0.2, // 200ms
+      width: `${(step / 4) * 100}%`,
+      duration: 0.25,
       ease: "power1.out",
     });
   }, { scope: containerRef, dependencies: [step] });
@@ -48,18 +54,24 @@ export function AcademicSelectionForm({
   function handleSelectUniversity(id: string) {
     setUniversityId(id);
     setBranchId("");
-    setSelectedSubjectIds([]);
     setStep(2);
   }
 
   function handleSelectBranch(id: string) {
     setBranchId(id);
-    const branch = selectedUniversity?.branches.find((b) => b.id === id);
-    if (branch) {
-      // Pre-select all subjects by default
-      setSelectedSubjectIds(branch.subjects.map((s) => s.id));
-    }
     setStep(3);
+  }
+
+  function handleSelectSemester(semId: number) {
+    setSemester(semId);
+    
+    // Automatically pre-select all subjects of the newly selected semester
+    if (selectedBranch) {
+      const filtered = selectedBranch.subjects.filter((s) => s.semester === semId);
+      setSelectedSubjectIds(filtered.map((s) => s.id));
+    }
+    
+    setStep(4);
   }
 
   function handleToggleSubject(id: string) {
@@ -85,6 +97,7 @@ export function AcademicSelectionForm({
     saveStudyContext({
       universityId,
       branchId,
+      semester,
       selectedSubjectIds,
       subjectId: activeSubjectId,
       universityLabel: getTranslation(language, selectedUniversity.labelKey as TranslationKey),
@@ -103,22 +116,34 @@ export function AcademicSelectionForm({
         return "🏛️";
       case "economie-gestion":
         return "📊";
+      case "sciences-maths-info":
+        return "💻";
       default:
         return "📚";
     }
   };
 
+  const semestersList = [
+    { id: 1, label: "Semestre 1 (S1)", num: "❶" },
+    { id: 2, label: "Semestre 2 (S2)", num: "❷" },
+    { id: 3, label: "Semestre 3 (S3)", num: "❸" },
+    { id: 4, label: "Semestre 4 (S4)", num: "❹" },
+    { id: 5, label: "Semestre 5 (S5)", num: "❺" },
+    { id: 6, label: "Semestre 6 (S6)", num: "❻" },
+  ];
+
   return (
     <div ref={containerRef} className="w-full">
       {/* Progress Indicator */}
       <div className="mb-6 flex flex-col gap-1.5">
-        <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wider text-secondary">
-          <span>{getTranslation(language, "university")}</span>
-          <span>{getTranslation(language, "branch")}</span>
-          <span>{getTranslation(language, "subject")}</span>
+        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-secondary">
+          <span>Univ</span>
+          <span>Filière</span>
+          <span>Semestre</span>
+          <span>Matières</span>
         </div>
         <div className="h-1.5 w-full rounded-sm bg-[#E2E8F0] overflow-hidden">
-          <div className="progress-bar-fill h-full w-1/3 rounded-sm bg-primary" />
+          <div className="progress-bar-fill h-full w-1/4 rounded-sm bg-primary" />
         </div>
       </div>
 
@@ -135,25 +160,33 @@ export function AcademicSelectionForm({
 
       {/* Outer Slider Container */}
       <div className="w-full overflow-hidden">
-        <form onSubmit={handleSubmit} className="steps-track flex w-[300%]">
+        <form onSubmit={handleSubmit} className="steps-track flex w-[400%]">
           {/* STEP 1: University Selection */}
-          <div className="w-1/3 px-1 flex flex-col gap-3">
+          <div className="w-1/4 px-1 flex flex-col gap-3">
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
               Choisissez votre université :
             </h2>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 max-h-[320px] overflow-y-auto pr-1">
               {universities.map((univ) => (
                 <button
                   key={univ.id}
                   type="button"
                   onClick={() => handleSelectUniversity(univ.id)}
-                  className={`w-full text-left border rounded-md p-3.5 cursor-pointer transition-all flex items-center gap-3 ${
+                  className={`w-full text-left border rounded-md p-3 cursor-pointer transition-all flex items-center gap-3 ${
                     universityId === univ.id
                       ? "bg-[#F1F5F9] border-2 border-primary shadow-medium"
                       : "bg-surface border-[#E2E8F0] shadow-subtle hover:border-primary/50"
                   }`}
                 >
-                  <span className="text-lg">🎓</span>
+                  {univ.logo ? (
+                    <img
+                      src={`/univ-logos/${univ.logo}`}
+                      alt=""
+                      className="w-6 h-6 object-contain rounded-sm"
+                    />
+                  ) : (
+                    <span className="text-base">🎓</span>
+                  )}
                   <span className="font-sans font-medium text-xs text-primary">
                     {getTranslation(language, univ.labelKey as TranslationKey)}
                   </span>
@@ -163,7 +196,7 @@ export function AcademicSelectionForm({
           </div>
 
           {/* STEP 2: Branch/Major Selection */}
-          <div className="w-1/3 px-1 flex flex-col gap-3">
+          <div className="w-1/4 px-1 flex flex-col gap-3">
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
               Choisissez votre filière :
             </h2>
@@ -188,30 +221,56 @@ export function AcademicSelectionForm({
             </div>
           </div>
 
-          {/* STEP 3: Subjects Customization */}
-          <div className="w-1/3 px-1 flex flex-col gap-3">
+          {/* STEP 3: Semester Selection */}
+          <div className="w-1/4 px-1 flex flex-col gap-3">
             <h2 className="font-serif text-sm font-semibold text-primary mb-1">
-              Personnalisez vos matières pour ce semestre :
+              Choisissez votre semestre :
             </h2>
-            <div className="flex flex-col gap-2">
-              {selectedBranch?.subjects.map((subject) => {
+            <div className="grid grid-cols-2 gap-2">
+              {semestersList.map((sem) => (
+                <button
+                  key={sem.id}
+                  type="button"
+                  onClick={() => handleSelectSemester(sem.id)}
+                  className={`text-center border rounded-md p-4 cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 ${
+                    semester === sem.id
+                      ? "bg-[#F1F5F9] border-2 border-primary shadow-medium"
+                      : "bg-surface border-[#E2E8F0] shadow-subtle hover:border-primary/50"
+                  }`}
+                >
+                  <span className="text-lg text-primary">{sem.num}</span>
+                  <span className="font-sans font-semibold text-[11px] text-primary">
+                    S{sem.id}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* STEP 4: Subjects Customization */}
+          <div className="w-1/4 px-1 flex flex-col gap-3">
+            <h2 className="font-serif text-sm font-semibold text-primary mb-1">
+              Personnalisez vos matières (S{semester}) :
+            </h2>
+            <div className="flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-1">
+              {availableSubjects.map((subject) => {
                 const isSelected = selectedSubjectIds.includes(subject.id);
                 return (
                   <button
                     key={subject.id}
                     type="button"
                     onClick={() => handleToggleSubject(subject.id)}
-                    className={`w-full text-left border rounded-md px-4 py-3 cursor-pointer transition-all flex items-center justify-between ${
+                    className={`w-full text-left border rounded-md px-3.5 py-2.5 cursor-pointer transition-all flex items-center justify-between ${
                       isSelected
                         ? "bg-surface border-2 border-primary shadow-subtle opacity-100"
                         : "bg-surface border-[#E2E8F0] opacity-50 shadow-subtle"
                     }`}
                   >
-                    <span className="font-sans font-medium text-xs text-primary">
+                    <span className="font-sans font-medium text-xs text-primary pr-2">
                       {getTranslation(language, subject.labelKey as TranslationKey)}
                     </span>
                     <div
-                      className={`w-4 h-4 rounded-sm border flex items-center justify-center text-[9px] ${
+                      className={`w-4 h-4 rounded-sm border flex items-center justify-center text-[9px] flex-shrink-0 ${
                         isSelected
                           ? "bg-primary border-primary text-white font-bold"
                           : "bg-transparent border-[#CBD5E1]"
@@ -222,12 +281,17 @@ export function AcademicSelectionForm({
                   </button>
                 );
               })}
+              {availableSubjects.length === 0 && (
+                <p className="text-xs text-secondary text-center py-4">
+                  Aucune matière disponible pour ce semestre.
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
               disabled={selectedSubjectIds.length === 0}
-              className="mt-4 w-full rounded-md bg-primary py-3 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors disabled:cursor-not-allowed disabled:opacity-45"
+              className="mt-4 w-full rounded-md bg-primary py-3 text-xs font-semibold text-white hover:bg-[#162D4A] transition-colors disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer"
             >
               {getTranslation(language, submitLabelKey)}
             </button>
