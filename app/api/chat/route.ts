@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { auth } from "@/auth";
 import { getUserDocuments } from "@/lib/db";
+import { vectorStore } from "@/lib/vector-store";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,11 +14,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.email) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const userId = (user as any).id;
     const body = await req.json();
     const { messages, studyContext } = body;
 
@@ -35,18 +38,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const allDocs = await getUserDocuments(user.id);
+    const allDocs = await getUserDocuments(userId);
     const activeDocs = allDocs.filter((d: any) => d.toggled);
 
-    const documentReferenceText = activeDocs.length > 0 
-      ? [
-          "--- DEBUT DOCUMENTS DE RÉFÉRENCE DE L'ÉTUDIANT ---",
-          "Voici le contenu des documents/polycopiés chargés par l'étudiant. Utilisez ces textes en priorité absolue comme base de connaissances pour répondre aux questions, citer des passages, et structurer vos explications académiques :",
-          "",
-          activeDocs.map((d: any) => `[Fichier: ${d.name}]\n${d.content}`).join("\n\n---\n\n"),
-          "--- FIN DOCUMENTS DE RÉFÉRENCE ---"
-        ].join("\n")
-      : "";
+    let documentReferenceText = "";
+
+    if (activeDocs.length > 0) {
+      try {
+        const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+        if (lastUserMessage) {
+          const ai = new GoogleGenAI({ apiKey });
+          // 1. Embed user query
+          const embedRes = await ai.models.embedContent({
+            model: "text-embedding-004",
+            contents: lastUserMessage.content,
+          });
+
+          const values = embedRes.embeddings?.[0]?.values;
+          if (values) {
+            // 2. Perform similarity search in Vector DB
+            const results = await vectorStore.similaritySearch(userId, values, 6);
+            
+            // 3. Filter chunks to only include active/toggled documents
+            const activeDocIds = new Set(activeDocs.map((d: any) => d.id));
+            const filteredResults = results.filter((r) => activeDocIds.has(r.docId)).slice(0, 4);
+
+            if (filteredResults.length > 0) {
+              documentReferenceText = [
+                "--- DEBUT DOCUMENTS DE RÉFÉRENCE DE L'ÉTUDIANT ---",
+                "Voici les extraits les plus pertinents de vos documents de cours officiels. Servez-vous de ces extraits pour répondre de façon ciblée et exacte :",
+                "",
+                filteredResults.map((r, i) => `[Fichier: ${r.metadata?.fileName || "Polycopié"} | Extrait #${i+1}]\n${r.text}`).join("\n\n---\n\n"),
+                "--- FIN DOCUMENTS DE RÉFÉRENCE ---"
+              ].join("\n");
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to retrieve RAG context:", err);
+      }
+    }
 
     const ai = new GoogleGenAI({ apiKey });
 

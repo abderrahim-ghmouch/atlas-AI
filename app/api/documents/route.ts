@@ -1,15 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { auth } from "@/auth";
 import { getUserDocuments, addDocument, toggleDocument, deleteDocument, getStudyContext } from "@/lib/db";
+import { vectorStore } from "@/lib/vector-store";
+import { GoogleGenAI } from "@google/genai";
+import * as pdfImport from "pdf-parse";
+
+// pdf-parse is a CommonJS module with export = PdfParse.
+// To avoid bundler default export resolution issues at runtime, we resolve it dynamically.
+const pdf = ((pdfImport as any).default || pdfImport) as any;
+
+function chunkText(text: string, chunkSize = 1000, overlap = 200): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  // Clean whitespace/newlines for cleaner embeddings
+  const cleanText = text.replace(/\s+/g, " ").trim();
+  while (start < cleanText.length) {
+    const end = Math.min(start + chunkSize, cleanText.length);
+    chunks.push(cleanText.slice(start, end));
+    start += chunkSize - overlap;
+  }
+  return chunks;
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.email) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const list = await getUserDocuments(user.id);
+    const userId = (user as any).id;
+    const list = await getUserDocuments(userId);
     return NextResponse.json({ success: true, files: list });
   } catch (error: any) {
     console.error("Fetch documents error:", error);
@@ -22,11 +44,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.email) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const userId = (user as any).id;
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -43,32 +67,76 @@ export async function POST(req: NextRequest) {
 
     if (isTextFile) {
       content = await file.text();
+    } else if (name.endsWith(".pdf")) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const parsed = await pdf(buffer);
+      content = parsed.text;
     } else {
-      const studyContext = await getStudyContext(user.id);
-      const subjectLabel = studyContext?.subjectLabel || "Matière Académique";
-      const univLabel = studyContext?.universityLabel || "Université";
-      
-      content = [
-        `[RAG Reference Document: ${name}]`,
-        `Filière / Module: ${subjectLabel}`,
-        `Établissement: ${univLabel}`,
-        `Type de ressource: Polycopié de cours / Fascicule de Travaux Dirigés`,
-        "",
-        `Sommaire des chapitres contenus dans ${name}:`,
-        `1. Introduction générale et définitions fondamentales de la matière ${subjectLabel}.`,
-        `2. Principes directeurs, méthodologie de révision et cas pratiques types.`,
-        `3. Éléments clés de cours et résumés structurés pour la préparation des examens du Semestre ${studyContext?.semester || "actif"}.`,
-        "",
-        `Informations complémentaires: Ce document contient des notes détaillées rédigées pour aider les étudiants de l'${univLabel} à assimiler les concepts essentiels de ce cours. Utilisez ces thèmes lors de l'élaboration de vos réponses.`
-      ].join("\n");
+      return NextResponse.json(
+        { error: "Format de fichier non pris en charge. Veuillez importer un fichier .pdf, .txt, ou .md." },
+        { status: 400 }
+      );
     }
 
+    if (!content || content.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Le fichier est vide ou n'a pas pu être lu." },
+        { status: 400 }
+      );
+    }
+
+    // 1. Chunk Text
+    const chunks = chunkText(content, 1000, 200);
+
+    // 2. Generate embeddings via Gemini SDK
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not configured in .env.local");
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
+    const embeddings: number[][] = [];
+    for (const chunk of chunks) {
+      try {
+        const response = await ai.models.embedContent({
+          model: "text-embedding-004",
+          contents: chunk,
+        });
+        const values = response.embeddings?.[0]?.values;
+        if (values) {
+          embeddings.push(values);
+        }
+      } catch (err) {
+        console.error("Failed to generate embedding for chunk:", err);
+      }
+    }
+
+    if (embeddings.length === 0) {
+      throw new Error("Impossible de générer des embeddings vectoriels pour ce document.");
+    }
+
+    // 3. Upsert Chunks into the active Vector Database
+    const vectorChunks = chunks.map((text, idx) => ({
+      docId,
+      userId,
+      text,
+      embedding: embeddings[idx],
+      metadata: {
+        fileName: name,
+        chunkIndex: idx,
+      },
+    })).filter((vc) => vc.embedding && vc.embedding.length > 0);
+
+    await vectorStore.upsertChunks(vectorChunks);
+
+    // 4. Save metadata for listing in UI
     const sizeStr = (size / (1024 * 1024)).toFixed(1) + " MB";
-    const newDoc = await addDocument(user.id, docId, {
+    const newDoc = await addDocument(userId, docId, {
       name,
       size: sizeStr === "0.0 MB" ? `${(size / 1024).toFixed(0)} KB` : sizeStr,
       toggled: true,
-      content,
+      // Store a brief preview/header context rather than full raw text in primary DB
+      content: content.slice(0, 1000) + (content.length > 1000 ? "..." : ""),
     });
 
     return NextResponse.json({ success: true, file: newDoc });
@@ -83,11 +151,13 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.email) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const userId = (user as any).id;
     const body = await req.json();
     const { id, toggled } = body;
 
@@ -95,7 +165,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 });
     }
 
-    await toggleDocument(id, toggled, user.id);
+    await toggleDocument(id, toggled, userId);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Toggle document error:", error);
@@ -108,11 +178,13 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
+    const session = await auth();
+    const user = session?.user;
+    if (!user || !user.email) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const userId = (user as any).id;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
@@ -120,7 +192,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Identifiant du document manquant" }, { status: 400 });
     }
 
-    await deleteDocument(id, user.id);
+    // 1. Delete metadata from primary DB
+    await deleteDocument(id, userId);
+
+    // 2. Delete chunks from Vector Store
+    await vectorStore.deleteDocumentChunks(id, userId);
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Delete document error:", error);

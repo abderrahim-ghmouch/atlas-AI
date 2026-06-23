@@ -7,6 +7,7 @@ import { getTranslation } from "@/lib/translations";
 import { AuthHeader } from "@/app/components/AuthHeader";
 import { saveStudyContext } from "@/lib/study-context";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const { language } = useLanguage();
@@ -24,20 +25,21 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Erreur de connexion");
+      if (res?.error) {
+        throw new Error("Identifiants de connexion invalides.");
       }
 
-      if (data.studyContext) {
-        saveStudyContext(data.studyContext);
+      const meRes = await fetch("/api/auth/me");
+      const meData = await meRes.json();
+
+      if (meData.studyContext) {
+        saveStudyContext(meData.studyContext);
         router.push("/dashboard");
       } else {
         router.push("/onboarding");

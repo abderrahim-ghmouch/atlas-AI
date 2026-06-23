@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { findUserByEmail, createUser, createSession } from "@/lib/db";
+import { findUserByEmail, createUser } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -26,23 +25,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = hashPassword(password);
     await createUser(userId, name, email, passwordHash);
 
-    const sessionToken = `sess-${crypto.randomBytes(24).toString("hex")}`;
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-    await createSession(sessionToken, userId, expiresAt.toISOString());
-
-    const response = NextResponse.json({ success: true, user: { id: userId, name, email } });
-
-    response.cookies.set("mgscholar_session", sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires: expiresAt,
-      path: "/",
-    });
-
-    return response;
+    return NextResponse.json({ success: true, user: { id: userId, name, email } });
   } catch (error: any) {
     console.error("Signup error:", error);
     return NextResponse.json(

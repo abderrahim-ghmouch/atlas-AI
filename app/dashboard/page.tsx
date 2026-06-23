@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getStudyContext, StudyContext, saveStudyContext } from "@/lib/study-context";
+import { signOut } from "next-auth/react";
 import { getSubjectById, universities } from "@/lib/academic-data";
 import { getTranslation, TranslationKey } from "@/lib/translations";
 import { useLanguage } from "@/app/LanguageContext";
@@ -534,14 +535,7 @@ export default function DashboardPage() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-    } catch (err) {
-      console.error("Failed to logout:", err);
-    }
-    router.push("/login");
+    await signOut({ callbackUrl: "/login" });
   };
 
   const suggestions = [
