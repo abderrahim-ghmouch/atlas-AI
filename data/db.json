@@ -1,0 +1,59 @@
+{
+  "users": [
+    {
+      "id": "user-1782214775531",
+      "name": "abderrahim gh",
+      "email": "admin@donify.com",
+      "passwordHash": "1d34b365574ff97b52d37115e97de3f4:f2cc7e67b5dc4075e778febbe436c1d08b562926b81ac1be1d800d119f53306eff1f5b4ebbca3b3e7f1ba321a00677480dd1e3afe410ab44899ffc6775a62c1c",
+      "createdAt": "2026-06-23T11:39:35.533Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "sess-f188fbadc5f4199c46ed200fe0918c7864f8ed36c4be8874",
+      "userId": "user-1782214775531",
+      "expiresAt": "2026-06-30T11:39:52.630Z",
+      "createdAt": "2026-06-23T11:39:52.631Z"
+    },
+    {
+      "token": "sess-fe0876b2cef83cee7d69a80b8470207f7da2b2bdcd71df16",
+      "userId": "user-1782214775531",
+      "expiresAt": "2026-06-30T11:41:11.335Z",
+      "createdAt": "2026-06-23T11:41:11.335Z"
+    }
+  ],
+  "discussions": [
+    {
+      "id": "disc-init-1782214785596",
+      "userId": "user-1782214775531",
+      "title": "Introduction et notions",
+      "subjectId": "contentieux-admin",
+      "messages": [
+        {
+          "role": "model",
+          "content": "Bonjour ! Je suis votre assistant d'études intelligent pour la matière **Contentieux administratif** à l'**Université Mohammed V — Rabat** (Droit public). \n\nComment puis-je vous aider aujourd'hui à réviser vos cours, comprendre des concepts clés ou préparer vos examens ?"
+        }
+      ],
+      "updatedAt": "2026-06-23T11:39:45.622Z"
+    }
+  ],
+  "documents": [],
+  "studyContexts": [
+    {
+      "userId": "user-1782214775531",
+      "universityId": "mohammed-v",
+      "branchId": "droit-public",
+      "semester": 4,
+      "selectedSubjectIds": [
+        "contentieux-admin",
+        "droits-homme",
+        "relations-int"
+      ],
+      "subjectId": "contentieux-admin",
+      "universityLabel": "Université Mohammed V — Rabat",
+      "branchLabel": "Droit public",
+      "subjectLabel": "Contentieux administratif",
+      "updatedAt": "2026-06-23T11:39:45.192Z"
+    }
+  ]
+}

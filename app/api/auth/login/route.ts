@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { findUserByEmail, createSession } from "@/lib/db";
+import { findUserByEmail, createSession, getStudyContext } from "@/lib/db";
 import { verifyPassword } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -36,9 +36,12 @@ export async function POST(req: NextRequest) {
 
     await createSession(sessionToken, user.id, expiresAt.toISOString());
 
+    const studyContext = await getStudyContext(user.id);
+
     const response = NextResponse.json({
       success: true,
       user: { id: user.id, name: user.name, email: user.email },
+      studyContext,
     });
 
     response.cookies.set("mgscholar_session", sessionToken, {

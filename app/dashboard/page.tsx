@@ -116,6 +116,18 @@ export default function DashboardPage() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<"profile" | "settings" | null>(null);
+  const [chatFontSize, setChatFontSize] = useState<"text-[11px]" | "text-[13px]" | "text-[15px]">("text-[13px]");
+  const [chatLineHeight, setChatLineHeight] = useState<"leading-tight" | "leading-normal" | "leading-relaxed">("leading-normal");
+
+  const handleUpdateFontSize = (size: "text-[11px]" | "text-[13px]" | "text-[15px]") => {
+    setChatFontSize(size);
+    localStorage.setItem("mgscholar-settings-font-size", size);
+  };
+
+  const handleUpdateLineHeight = (height: "leading-tight" | "leading-normal" | "leading-relaxed") => {
+    setChatLineHeight(height);
+    localStorage.setItem("mgscholar-settings-line-height", height);
+  };
 
   // Discussions & Files states
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
@@ -130,6 +142,11 @@ export default function DashboardPage() {
 
   // Load initial context and populate backend data
   useEffect(() => {
+    const savedSize = localStorage.getItem("mgscholar-settings-font-size");
+    const savedHeight = localStorage.getItem("mgscholar-settings-line-height");
+    if (savedSize) setChatFontSize(savedSize as any);
+    if (savedHeight) setChatLineHeight(savedHeight as any);
+
     async function loadDashboardData() {
       try {
         const resMe = await fetch("/api/auth/me");
@@ -529,11 +546,11 @@ export default function DashboardPage() {
 
   const suggestions = [
     {
-      label: `💡 Axes principaux de ${studyContext.subjectLabel}`,
+      label: `Axes principaux de ${studyContext.subjectLabel}`,
       text: `Quels sont les axes principaux de la matière ${studyContext.subjectLabel} et comment puis-je me préparer pour l'examen ?`,
     },
     {
-      label: `📄 Résumer le cours`,
+      label: `Résumer le cours`,
       text: `Veuillez me fournir un résumé clair et concis des concepts clés du cours de ${studyContext.subjectLabel}.`,
     }
   ];
@@ -599,16 +616,21 @@ export default function DashboardPage() {
                   >
                     <button
                       onClick={() => handleSelectDiscussion(d.id)}
-                      className="text-left text-xs font-medium truncate flex-1 cursor-pointer"
+                      className="text-left text-xs font-medium truncate flex-1 cursor-pointer flex items-center gap-2"
                     >
-                      💬 {d.title}
+                      <svg className="w-3.5 h-3.5 text-primary/70 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <span className="truncate">{d.title}</span>
                     </button>
                     <button
                       onClick={(e) => handleDeleteDiscussion(e, d.id)}
-                      className="text-[10px] text-secondary hover:text-red-500 transition-colors ml-2 cursor-pointer"
+                      className="w-4 h-4 flex items-center justify-center rounded-sm text-secondary hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                       title="Supprimer"
                     >
-                      🗑️
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
                   </div>
                 );
@@ -660,10 +682,12 @@ export default function DashboardPage() {
             {/* Toggle Left Sidebar on Mobile */}
             <button
               onClick={() => setLeftSidebarOpen(true)}
-              className="lg:hidden p-1.5 rounded-md border border-[#CBD5E1] text-primary hover:bg-[#F1F5F9] cursor-pointer"
+              className="lg:hidden p-1.5 rounded-md border border-[#CBD5E1] text-primary hover:bg-[#F1F5F9] cursor-pointer flex items-center justify-center"
               aria-label="Menu"
             >
-              ☰
+              <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
             <div className="flex items-center gap-2.5">
               {selectedUniv?.logo && (
@@ -688,9 +712,12 @@ export default function DashboardPage() {
             {/* Toggle Right Drawer on Mobile */}
             <button
               onClick={() => setRightSidebarOpen(true)}
-              className="lg:hidden rounded-md border border-[#CBD5E1] px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#F1F5F9] cursor-pointer"
+              className="lg:hidden rounded-md border border-[#CBD5E1] px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#F1F5F9] cursor-pointer flex items-center gap-1.5"
             >
-              📄 Polycopiés
+              <svg className="w-3.5 h-3.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Polycopiés
             </button>
             <Link
               href="/onboarding"
@@ -746,7 +773,7 @@ export default function DashboardPage() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[90%] rounded-md border px-4 py-3 leading-relaxed text-xs shadow-subtle ${
+                    className={`max-w-[90%] rounded-md border px-4 py-3 shadow-subtle ${chatFontSize} ${chatLineHeight} ${
                       msg.role === "user"
                         ? "bg-[#EFF6FF] border-[#CBD5E1] text-primary"
                         : "bg-surface border-[#E2E8F0] text-primary"
@@ -786,9 +813,18 @@ export default function DashboardPage() {
                     key={i}
                     type="button"
                     onClick={() => handleSendMessage(sug.text)}
-                    className="w-full text-left rounded-md border border-[#CBD5E1] bg-surface hover:bg-[#F8FAFC] px-3.5 py-3 text-xs font-semibold text-primary transition-all cursor-pointer shadow-subtle hover:border-primary/50"
+                    className="w-full text-left rounded-md border border-[#CBD5E1] bg-surface hover:bg-[#F8FAFC] px-3.5 py-3 text-xs font-semibold text-primary transition-all cursor-pointer shadow-subtle hover:border-primary/50 flex items-center gap-2.5"
                   >
-                    {sug.label}
+                    {i === 0 ? (
+                      <svg className="w-4 h-4 text-primary/70 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8M12 3a7 7 0 00-7 7c0 2.4 1.2 4.5 3 5.8V17a1 1 0 001 1h6a1 1 0 001-1v-1.2c1.8-1.3 3-3.4 3-5.8a7 7 0 00-7-7z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 text-primary/70 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    )}
+                    <span>{sug.label}</span>
                   </button>
                 ))}
               </div>
@@ -825,7 +861,10 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
           <span className="font-serif text-sm font-bold text-primary flex items-center gap-1.5">
-            📄 Polycopiés du cours
+            <svg className="w-4 h-4 text-primary fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Polycopiés du cours
           </span>
           <button
             onClick={() => setRightSidebarOpen(false)}
@@ -850,7 +889,9 @@ export default function DashboardPage() {
               : "border-[#CBD5E1] hover:border-primary/60 bg-background/40"
           }`}
         >
-          <span className="text-xl mb-1.5">📤</span>
+          <svg className="w-6 h-6 text-secondary mb-1.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
           <p className="text-xs font-semibold text-primary mb-0.5">Importer un cours</p>
           <p className="text-[10px] text-secondary">Glissez un PDF ou cliquez ici</p>
           <input
@@ -879,7 +920,9 @@ export default function DashboardPage() {
               }`}
             >
               <div className="flex items-start gap-2 max-w-[70%]">
-                <span className="text-base mt-0.5">📄</span>
+                <svg className="w-3.5 h-3.5 text-primary mt-0.5 fill-none stroke-current flex-shrink-0" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 <div className="flex flex-col truncate">
                   <span className="text-xs font-medium text-primary truncate leading-tight">
                     {file.name}
@@ -892,10 +935,12 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
                 <button
                   onClick={(e) => handleDeleteFile(e, file.id)}
-                  className="w-3.5 h-3.5 flex items-center justify-center text-[10px] text-secondary hover:text-red-500 transition-colors cursor-pointer"
+                  className="w-4 h-4 flex items-center justify-center rounded-sm text-secondary hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                   title="Supprimer"
                 >
-                  🗑️
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
                 <div
                   className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center text-[8px] ${
@@ -960,7 +1005,54 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 </div>
-                <div className="space-y-1">
+
+                <div className="space-y-2 border-t border-[#E2E8F0] pt-3">
+                  <span className="block font-bold text-primary">Taille du texte</span>
+                  <div className="flex gap-2">
+                    {[
+                      { label: "Petit", value: "text-[11px]" },
+                      { label: "Moyen", value: "text-[13px]" },
+                      { label: "Grand", value: "text-[15px]" }
+                    ].map((sz) => (
+                      <button
+                        key={sz.value}
+                        onClick={() => handleUpdateFontSize(sz.value as any)}
+                        className={`px-2.5 py-1 rounded-sm border text-[10px] font-medium transition-colors cursor-pointer ${
+                          chatFontSize === sz.value
+                            ? "bg-primary text-white border-primary"
+                            : "bg-transparent border-[#CBD5E1] text-secondary hover:border-primary hover:text-primary"
+                        }`}
+                      >
+                        {sz.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 border-t border-[#E2E8F0] pt-3">
+                  <span className="block font-bold text-primary">Espacement des lignes</span>
+                  <div className="flex gap-2">
+                    {[
+                      { label: "Compact", value: "leading-tight" },
+                      { label: "Normal", value: "leading-normal" },
+                      { label: "Aéré", value: "leading-relaxed" }
+                    ].map((lh) => (
+                      <button
+                        key={lh.value}
+                        onClick={() => handleUpdateLineHeight(lh.value as any)}
+                        className={`px-2.5 py-1 rounded-sm border text-[10px] font-medium transition-colors cursor-pointer ${
+                          chatLineHeight === lh.value
+                            ? "bg-primary text-white border-primary"
+                            : "bg-transparent border-[#CBD5E1] text-secondary hover:border-primary hover:text-primary"
+                        }`}
+                      >
+                        {lh.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1 border-t border-[#E2E8F0] pt-3">
                   <span className="block font-bold text-primary">Paramètres d'étude</span>
                   <p className="text-secondary text-[10px] leading-relaxed">
                     Les explications d'étude et les corrections d'examens générées par l'IA tutorielle sont configurées spécifiquement pour le programme officiel de votre établissement.

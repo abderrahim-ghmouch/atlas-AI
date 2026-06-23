@@ -10,7 +10,9 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const isFirebaseConfigured = !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+const isFirebaseConfigured =
+  !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
 let app;
 let db: any = null;
