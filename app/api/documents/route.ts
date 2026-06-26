@@ -3,11 +3,6 @@ import { auth } from "@/auth";
 import { getUserDocuments, addDocument, toggleDocument, deleteDocument, getStudyContext } from "@/lib/db";
 import { vectorStore } from "@/lib/vector-store";
 import { GoogleGenAI } from "@google/genai";
-import * as pdfImport from "pdf-parse";
-
-// pdf-parse is a CommonJS module with export = PdfParse.
-// To avoid bundler default export resolution issues at runtime, we resolve it dynamically.
-const pdf = ((pdfImport as any).default || pdfImport) as any;
 
 function chunkText(text: string, chunkSize = 1000, overlap = 200): string[] {
   const chunks: string[] = [];
@@ -69,6 +64,8 @@ export async function POST(req: NextRequest) {
       content = await file.text();
     } else if (name.endsWith(".pdf")) {
       const buffer = Buffer.from(await file.arrayBuffer());
+      const pdfImport = require("pdf-parse");
+      const pdf = pdfImport.default || pdfImport;
       const parsed = await pdf(buffer);
       content = parsed.text;
     } else {

@@ -611,7 +611,7 @@ export default function DashboardPage() {
   const renderInputArea = () => {
     return (
       <form onSubmit={handleSubmit} className="w-full">
-        <div className="relative border border-brand-mint/20 rounded-xl bg-surface flex items-end p-1.5 focus-within:border-brand-mint transition-colors">
+        <div className="relative border border-brand-mint/20 rounded-xl bg-surface flex items-end p-1.5 focus-within:border-brand-mint/50 shadow-[0_0_15px_rgba(37,161,148,0.15)] focus-within:shadow-[0_0_25px_rgba(37,161,148,0.35)] transition-all duration-300">
           {/* Integrated file upload button */}
           <button
             type="button"
@@ -666,10 +666,8 @@ export default function DashboardPage() {
 
       {/* LEFT ASIDE: Chat History Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 bg-sidebar-bg border-r border-brand-mint/15 flex flex-col justify-between h-full transform transition-all duration-300 ease-in-out ${
-          sidebarOpen
-            ? "translate-x-0 w-64 lg:relative"
-            : "-translate-x-full w-64 lg:w-0 lg:relative lg:translate-x-0 lg:border-r-0 lg:overflow-hidden"
+        className={`fixed inset-y-0 left-0 z-40 bg-sidebar-bg border-r border-brand-mint/15 flex flex-col justify-between h-full w-64 transition-transform duration-200 ease-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col flex-1 overflow-hidden">
@@ -687,9 +685,12 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-secondary hover:text-primary text-xs font-semibold transition-colors duration-200"
+              className="text-secondary hover:text-primary p-1.5 rounded-lg border border-brand-mint/10 hover:bg-brand-mint/5 transition-colors cursor-pointer flex items-center justify-center"
+              title={language === "fr" ? "Masquer la barre" : "Hide sidebar"}
             >
-              {getTranslation(language, "close")}
+              <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
             </button>
           </div>
 
@@ -800,21 +801,25 @@ export default function DashboardPage() {
         </div>
       </aside>
 
-      {/* Floating mobile menu toggle button when sidebar is closed */}
+      {/* Floating menu toggle button when sidebar is closed */}
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-xl border border-brand-mint/20 bg-surface text-primary hover:bg-brand-mint/5 cursor-pointer flex items-center justify-center transition-colors"
+          className="fixed top-4 left-4 z-30 p-2.5 rounded-xl border border-brand-mint/20 bg-surface text-primary hover:bg-brand-mint/5 cursor-pointer flex items-center justify-center transition-colors"
           aria-label="Open Menu"
         >
-          <svg className="w-5 h-5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </button>
       )}
 
       {/* CENTER PANE: Conversational Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div
+        className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-200 ease-out ${
+          sidebarOpen ? "lg:pl-64" : "lg:pl-0"
+        }`}
+      >
         {/* Scrollable conversation thread or Empty Centered State */}
         <div className="flex-1 flex flex-col overflow-hidden bg-background relative">
           {messages.length <= 1 ? (

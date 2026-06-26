@@ -32,9 +32,21 @@
         {
           "role": "model",
           "content": "Bonjour ! Je suis votre assistant d'études intelligent pour la matière **Contentieux administratif** à l'**Université Mohammed V — Rabat** (Droit public). \n\nComment puis-je vous aider aujourd'hui à réviser vos cours, comprendre des concepts clés ou préparer vos examens ?"
+        },
+        {
+          "role": "user",
+          "content": "hello"
+        },
+        {
+          "role": "model",
+          "content": "Bonjour ! Je suis là pour vous aider avec votre module de **Contentieux administratif** pour le Semestre 4. N'hésitez pas à me poser vos questions."
+        },
+        {
+          "role": "user",
+          "content": "resume the topic"
         }
       ],
-      "updatedAt": "2026-06-23T16:34:54.385Z"
+      "updatedAt": "2026-06-26T10:57:31.175Z"
     }
   ],
   "documents": [],
